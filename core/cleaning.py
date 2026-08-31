@@ -15,6 +15,11 @@ EMPTY_SHORT = -32768
 # Fecha del bulk anómalo: 55,3M líneas en un solo día que no son ventas reales.
 ANOMALIA_BULK_FECHA = datetime.date(2026, 5, 14)
 
+# Regla de join de clientes: el identificador en las ventas (IFCLIENTE) es la
+# cédula/NIT, no el código interno CODCLI. Match 99,1% contra clientes.cedula.
+# Ver NOTAS_LEGADO.md.
+VENTAS_CLIENTE_KEY = "cedula"
+
 # Codificación del legado (Windows latino).
 ENCODING = "cp1252"
 

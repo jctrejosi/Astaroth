@@ -41,9 +41,10 @@ print(rfm_view_sql())
 | Módulo | Qué hace |
 |---|---|
 | `core.adt` | `AdtTable`: lector de solo lectura de `.ADT` (tipos, centinelas de vacío, fechas `AAAAMMDD`) |
-| `core.cleaning` | Reglas de limpieza del legado: centinelas, `fecha_yyyymmdd`, anomalía del bulk, encoding |
+| `core.cleaning` | Reglas de limpieza del legado: centinelas, `fecha_yyyymmdd`, anomalía del bulk, encoding, join de clientes |
 | `core.RFM` | RFM: vista SQL por cliente (`recencia`, `frecuencia`, `monetario`, ticket, categorías) que se materializa en la BD de analytics |
 | `core.config` / `core.logging` | Utilidades mínimas |
+| **`NOTAS_LEGADO.md`** | **Reglas del legado: join por cédula, fechas, centinelas, anomalías — léelo antes de tocar datos `pos.*`** |
 
 ## Por qué existe
 

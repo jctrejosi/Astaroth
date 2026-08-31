@@ -1,0 +1,20 @@
+# Servicio único Astaroth: clustering-api + xgboost-api + uplift-api +
+# transformerApi + causalTransformer-api + proxy Caddy.
+# Dockerfile en la raíz del repo; Caddy rutea por prefijo.
+#
+# ⚠️ RAM: los servicios PyTorch (transformer:8013, causal:8014) cargan torch
+# (~2 GB c/u en runtime). Para el contenedor completo usa un plan de AL MENOS
+# 4 GB (Starter = 512 MB no alcanza). Si prefieres separarlos, crea servicios
+# web individuales con su propio Dockerfile (cada uno ya lo tiene).
+services:
+  - type: web
+    name: astaroth-ml
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /clustering/health
+    envVars:
+      # Clave de admin compartida para los /admin/* de los servicios (protege borrados)
+      - key: ADMIN_KEY
+        sync: false

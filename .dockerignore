@@ -1,0 +1,16 @@
+.git/
+node_modules/
+logs/
+**/__pycache__/
+**/*.pyc
+**/.venv/
+**/saved_models/*
+!**/saved_models/.gitkeep
+**/.env
+dev.js
+render.yaml
+README.md
+Dockerfile
+Caddyfile
+docker-entrypoint.sh
+.dockerignore

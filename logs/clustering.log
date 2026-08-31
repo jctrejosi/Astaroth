@@ -1,0 +1,35 @@
+
+===== [clustering] 2026-08-31T10:07:08.065Z modo=dev =====
+INFO:     Will watch for changes in these directories: ['/home/jk/Projects/seeds/Astaroth/clustering-api']
+INFO:     Uvicorn running on http://127.0.0.1:8010 (Press CTRL+C to quit)
+INFO:     Started reloader process [752447] using WatchFiles
+INFO:     Started server process [752454]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:52190 - "GET /health HTTP/1.1" 200 OK
+
+===== [clustering] 2026-08-31T10:08:58.737Z modo=dev =====
+INFO:     Will watch for changes in these directories: ['/home/jk/Projects/seeds/Astaroth/clustering-api']
+INFO:     Uvicorn running on http://127.0.0.1:8010 (Press CTRL+C to quit)
+INFO:     Started reloader process [754659] using WatchFiles
+INFO:     Started server process [754666]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:56362 - "GET /health HTTP/1.1" 200 OK
+
+===== [clustering] 2026-08-31T10:12:54.272Z modo=dev =====
+INFO:     Will watch for changes in these directories: ['/home/jk/Projects/seeds/Astaroth/clustering-api']
+INFO:     Uvicorn running on http://127.0.0.1:8010 (Press CTRL+C to quit)
+INFO:     Started reloader process [759475] using WatchFiles
+INFO:     Started server process [759509]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+
+===== [clustering] 2026-08-31T10:15:14.191Z modo=dev =====
+INFO:     Will watch for changes in these directories: ['/home/jk/Projects/seeds/Astaroth/clustering-api']
+INFO:     Uvicorn running on http://127.0.0.1:8010 (Press CTRL+C to quit)
+INFO:     Started reloader process [762521] using WatchFiles
+INFO:     Started server process [762528]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:56476 - "GET /health HTTP/1.1" 200 OK

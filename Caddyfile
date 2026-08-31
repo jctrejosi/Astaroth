@@ -1,0 +1,36 @@
+# Reverse proxy del contenedor de Astaroth.
+# Caddy escucha en $HTTP_PORT (el PORT público que inyecta Render).
+# - /clustering/* → clustering-api       (127.0.0.1:8010)
+# - /xgboost/*    → xgboost-api          (127.0.0.1:8011)
+# - /uplift/*     → uplift-api           (127.0.0.1:8012)
+# - /transformer/*→ transformerApi       (127.0.0.1:8013)
+# - /causal/*     → causalTransformer-api (127.0.0.1:8014)
+# handle_path quita el prefijo antes de reenviar.
+
+:{$HTTP_PORT} {
+	encode zstd gzip
+
+	handle_path /clustering/* {
+		reverse_proxy 127.0.0.1:8010
+	}
+
+	handle_path /xgboost/* {
+		reverse_proxy 127.0.0.1:8011
+	}
+
+	handle_path /uplift/* {
+		reverse_proxy 127.0.0.1:8012
+	}
+
+	handle_path /transformer/* {
+		reverse_proxy 127.0.0.1:8013
+	}
+
+	handle_path /causal/* {
+		reverse_proxy 127.0.0.1:8014
+	}
+
+	handle {
+		respond "Astaroth ML API — /clustering, /xgboost, /uplift, /transformer, /causal" 200
+	}
+}

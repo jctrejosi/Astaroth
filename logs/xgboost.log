@@ -1,0 +1,38 @@
+
+===== [xgboost] 2026-08-31T10:08:59.547Z modo=dev =====
+INFO:     Will watch for changes in these directories: ['/home/jk/Projects/seeds/Astaroth/XGBoost-api']
+INFO:     Uvicorn running on http://127.0.0.1:8011 (Press CTRL+C to quit)
+INFO:     Started reloader process [754691] using WatchFiles
+INFO:     Started server process [754705]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:57404 - "GET /health HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [754705]
+
+===== [xgboost] 2026-08-31T10:12:55.083Z modo=dev =====
+INFO:     Will watch for changes in these directories: ['/home/jk/Projects/seeds/Astaroth/XGBoost-api']
+INFO:     Uvicorn running on http://127.0.0.1:8011 (Press CTRL+C to quit)
+INFO:     Started reloader process [759524] using WatchFiles
+INFO:     Started server process [759538]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [759538]
+
+===== [xgboost] 2026-08-31T10:15:15.002Z modo=dev =====
+INFO:     Will watch for changes in these directories: ['/home/jk/Projects/seeds/Astaroth/XGBoost-api']
+INFO:     Uvicorn running on http://127.0.0.1:8011 (Press CTRL+C to quit)
+INFO:     Started reloader process [762550] using WatchFiles
+INFO:     Started server process [762564]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:58260 - "GET /health HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [762564]

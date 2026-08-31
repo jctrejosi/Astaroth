@@ -11,6 +11,11 @@ class Settings(BaseSettings):
 
     MODELS_DIR: str = "saved_models"
 
+    # Conexión a la réplica Postgres de analytics (p. ej. la vista
+    # analytics.vw_rfm_clientes). Si no se define, los endpoints
+    # /fit-from-db y /assign-from-db devuelven 503.
+    DATABASE_URL: str | None = None
+
     class Config:
         env_file = ".env"
 

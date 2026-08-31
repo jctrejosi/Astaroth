@@ -9,14 +9,24 @@ class Assigner:
 
     @staticmethod
     def assign(request: AssignRequest) -> dict:
-        pipeline = ModelStore.load_model(request.model_name)
-        metadata = ModelStore.load_metadata(request.model_name)
-
         X = validate_points(request.points)
+        return Assigner.assign_matrix(
+            request.model_name, X, request.with_distances
+        )
+
+    @staticmethod
+    def assign_matrix(
+        model_name: str,
+        X: np.ndarray,
+        with_distances: bool = False,
+    ) -> dict:
+        """Asigna una matriz ya cargada (usada por /assign-from-db)."""
+        pipeline = ModelStore.load_model(model_name)
+        metadata = ModelStore.load_metadata(model_name)
 
         if X.shape[1] != metadata["n_features"]:
             raise ValueError(
-                f"dimensionalidad incorrecta: el modelo '{request.model_name}' "
+                f"dimensionalidad incorrecta: el modelo '{model_name}' "
                 f"espera {metadata['n_features']} features y los puntos tienen "
                 f"{X.shape[1]}"
             )
@@ -30,11 +40,11 @@ class Assigner:
         labels = model.predict(Xt).tolist()
 
         distances = None
-        if request.with_distances and hasattr(model, "transform"):
+        if with_distances and hasattr(model, "transform"):
             distances = np.round(model.transform(Xt), 6).tolist()
 
         return {
-            "model_name": request.model_name,
+            "model_name": model_name,
             "labels": labels,
             "distances": distances
         }

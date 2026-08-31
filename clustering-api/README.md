@@ -17,8 +17,10 @@ patrón que `XGBoost-api` (FastAPI + artefactos en `saved_models/`).
 | Método | Ruta | Descripción |
 |---|---|---|
 | GET | `/health` | Estado del servicio |
-| POST | `/fit` | Entrena y guarda un modelo |
-| POST | `/assign` | Asigna puntos a un modelo entrenado |
+| POST | `/fit` | Entrena y guarda un modelo (puntos por JSON) |
+| POST | `/assign` | Asigna puntos a un modelo entrenado (puntos por JSON) |
+| POST | `/fit-from-db` | Entrena leyendo features desde la réplica Postgres (requiere `X-Admin-Key`) |
+| POST | `/assign-from-db` | Asigna labels leyendo features desde Postgres (requiere `X-Admin-Key`) |
 | GET | `/models` | Lista de modelos |
 | GET | `/models/{name}` | Metadata del modelo |
 | DELETE | `/models/{name}` | Elimina un modelo |
@@ -44,22 +46,65 @@ curl -X POST http://localhost:8000/assign \
   -d '{"model_name": "seg_v1", "points": [[1.2, 2.0]]}'
 ```
 
+### Entrenar/Asignar desde Postgres (datasets grandes)
+
+Para datasets de decenas de miles de filas, el transporte JSON es el cuello de
+botella. En su lugar, el servicio puede leer las features directo de la réplica
+(requiere `DATABASE_URL` y el header `X-Admin-Key`):
+
+```bash
+# Entrenar sobre la vista RFM (id_column excluye la cédula de las features)
+curl -X POST http://localhost:8000/fit-from-db \
+  -H "Content-Type: application/json" \
+  -H "X-Admin-Key: change-me" \
+  -d '{
+    "model_name": "seg_rfm_v1",
+    "algorithm": "minibatch",
+    "k": 6,
+    "query": "SELECT * FROM analytics.vw_rfm_clientes",
+    "id_column": "cliente_cod"
+  }'
+
+# Asignar todos los clientes de la vista (devuelve ids + labels)
+curl -X POST http://localhost:8000/assign-from-db \
+  -H "Content-Type: application/json" \
+  -H "X-Admin-Key: change-me" \
+  -d '{
+    "model_name": "seg_rfm_v1",
+    "query": "SELECT * FROM analytics.vw_rfm_clientes",
+    "id_column": "cliente_cod"
+  }'
+
+# Sólo los ids de un cluster (para dirigir una campaña a un segmento)
+curl -X POST http://localhost:8000/assign-from-db \
+  -H "Content-Type: application/json" \
+  -H "X-Admin-Key: change-me" \
+  -d '{
+    "model_name": "seg_rfm_v1",
+    "query": "SELECT * FROM analytics.vw_rfm_clientes",
+    "id_column": "cliente_cod",
+    "label": 2
+  }'
+```
+
 ## Diseño
 
-- El servicio es **agnóstico de la BD**: recibe los puntos por la API.
-  Quien lee de Postgres (la réplica `pos.*`) es el pipeline del ecommerce
-  (p. ej. la vista `analytics.vw_rfm_clientes` → puntos → esta API).
+- El servicio es **agnóstico de la BD** en sus endpoints `/fit` y `/assign`:
+  recibe los puntos por la API. Los endpoints `/fit-from-db` y
+  `/assign-from-db` leen directo de Postgres (réplica `pos.*` / vista
+  `analytics.vw_rfm_clientes`) para evitar transportar 100K+ filas por JSON.
+- Las consultas a la BD se validan (un único `SELECT`) y se ejecutan en una
+  transacción de solo lectura; los endpoints están protegidos por
+  `X-Admin-Key`.
 - Persistencia por modelo en `saved_models/{name}/`:
   `model.joblib` (pipeline scaler+clusterer), `centroids.json`,
-  `metadata.json` (métricas y parámetros).
+  `metadata.json` (métricas, parámetros y `feature_names`).
 - La silueta se calcula sobre una muestra de máx. 10.000 puntos (es O(n²)).
 - Los centroides se guardan en el **espacio original** (escala inversa).
 
 ## Notas de operación
 
-- `MODELS_DIR` (default `saved_models`) y `ADMIN_KEY` se configuran por
-  variables de entorno o `.env`.
-- Para datasets grandes, preferir `minibatch`; los puntos viajan como JSON,
-  así que el cuello de botella para 100K+ filas es el transporte — en ese
-  caso conviene llamar `/fit` por lotes o exponer una variante que lea de
-  Postgres (trabajo futuro).
+- `MODELS_DIR` (default `saved_models`), `ADMIN_KEY` y `DATABASE_URL` se
+  configuran por variables de entorno o `.env`.
+- Para datasets grandes, preferir `minibatch` y los endpoints `/fit-from-db` /
+  `/assign-from-db` (leen de Postgres en vez de transportar puntos por JSON).

@@ -53,9 +53,19 @@ class Clusterer:
 
     @staticmethod
     def fit(request: FitRequest) -> dict:
+        X = validate_points(request.points)
+        return Clusterer.fit_matrix(request, X)
+
+    @staticmethod
+    def fit_matrix(
+        request,
+        X: np.ndarray,
+        feature_names: list | None = None,
+        id_column: str | None = None,
+    ) -> dict:
+        """Entrena sobre una matriz ya cargada (usada por /fit-from-db)."""
         start_time = time()
 
-        X = validate_points(request.points)
         n_samples, n_features = X.shape
 
         if request.k >= n_samples:
@@ -105,6 +115,8 @@ class Clusterer:
             "created_at": datetime.utcnow().isoformat(),
             "n_samples": n_samples,
             "n_features": n_features,
+            "feature_names": feature_names,
+            "id_column": id_column,
             "training_time_seconds": round(time() - start_time, 2),
             "metrics": {
                 "inertia" if request.algorithm != "gmm" else "log_likelihood": score,

@@ -196,6 +196,19 @@ def segment_for_products(
         for i, c in enumerate(ids)
     }
 
+    # Perfil promedio (features RFM) por segmento: para explicar qué representa
+    # cada segmento en el ranking (frecuencia, monetario, ticket, categorías).
+    seg_feat_sums: dict[int, dict[str, float]] = {}
+    seg_feat_counts: dict[int, int] = {}
+    for cedula, lab in labels_by_cedula.items():
+        f = features_by_cedula.get(cedula)
+        if f is None:
+            continue
+        acc = seg_feat_sums.setdefault(lab, {})
+        for k, v in f.items():
+            acc[k] = acc.get(k, 0.0) + v
+        seg_feat_counts[lab] = seg_feat_counts.get(lab, 0) + 1
+
     emit("affinity", "Calculando afinidad con los productos seleccionados…", 60)
     categories = _product_categories(products)
 
@@ -214,6 +227,14 @@ def segment_for_products(
     ranking = _segment_ranking(labels_by_cedula, buyers)
     if not ranking:
         raise ValueError("no hay segmentos asignados")
+    for row in ranking:
+        seg = row["segment"]
+        n = seg_feat_counts.get(seg, 0)
+        row["means"] = (
+            {k: round(v / n, 3) for k, v in seg_feat_sums.get(seg, {}).items()}
+            if n
+            else {}
+        )
     best = ranking[0]
 
     seg_ids = [c for c, lab in labels_by_cedula.items() if lab == best["segment"]]

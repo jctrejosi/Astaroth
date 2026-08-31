@@ -250,10 +250,13 @@ def segment_for_products(
                 f"juntos (misma factura)"
             )
     else:
-        note = (
-            f"{len(buyers)} clientes compraron productos de las categorías "
-            f"{', '.join(categories[:5]) if categories else '(sin categorías, match exacto)'}"
-        )
+        if categories:
+            note = (
+                f"{len(buyers)} clientes compraron productos de "
+                f"{len(categories)} categorías relacionadas con la campaña"
+            )
+        else:
+            note = f"{len(buyers)} clientes compraron los productos seleccionados"
 
     return {
         "model_name": model_name,

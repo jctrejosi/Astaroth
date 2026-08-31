@@ -57,6 +57,26 @@ def _apply_limit(query: str, limit: int | None) -> str:
     return f"SELECT * FROM ({query}) AS _sub LIMIT {int(limit)}"
 
 
+def execute_read(sql: str, params: list | tuple | None = None) -> list[tuple]:
+    """Ejecuta un SELECT interno de solo lectura y devuelve todas las filas.
+
+    Para consultas controladas por el propio servicio (no por el cliente),
+    p. ej. el cálculo de afinidad de segmentos en pos.venta_lineas.
+    """
+    if not settings.DATABASE_URL:
+        raise DatabaseError(
+            "DATABASE_URL no está configurada en el servicio de clustering"
+        )
+    try:
+        with psycopg.connect(settings.DATABASE_URL) as conn:
+            with conn.cursor() as cur:
+                cur.execute("SET TRANSACTION READ ONLY")
+                cur.execute(sql, params)
+                return cur.fetchall()
+    except psycopg.Error as exc:
+        raise DatabaseError(f"error consultando la BD de analytics: {exc}")
+
+
 def _to_matrix(rows: list, idx: list[int]) -> np.ndarray:
     try:
         X = np.asarray([[r[i] for i in idx] for r in rows], dtype=np.float64)

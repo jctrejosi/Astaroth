@@ -21,6 +21,7 @@ patrón que `XGBoost-api` (FastAPI + artefactos en `saved_models/`).
 | POST | `/assign` | Asigna puntos a un modelo entrenado (puntos por JSON) |
 | POST | `/fit-from-db` | Entrena leyendo features desde la réplica Postgres (requiere `X-Admin-Key`) |
 | POST | `/assign-from-db` | Asigna labels leyendo features desde Postgres (requiere `X-Admin-Key`) |
+| POST | `/segment-for-products` | Mejor segmento para una campaña según sus productos (auto-fit si no existe; devuelve contactos de `pos.clientes`) |
 | GET | `/models` | Lista de modelos |
 | GET | `/models/{name}` | Metadata del modelo |
 | DELETE | `/models/{name}` | Elimina un modelo |
@@ -45,6 +46,30 @@ curl -X POST http://localhost:8000/assign \
   -H "Content-Type: application/json" \
   -d '{"model_name": "seg_v1", "points": [[1.2, 2.0]]}'
 ```
+
+### Segmentación por productos (creación de campañas)
+
+Elige el segmento con más afinidad a los productos seleccionados y devuelve
+sus clientes con contacto (`pos.clientes`):
+
+```bash
+curl -X POST http://localhost:8000/segment-for-products \
+  -H "Content-Type: application/json" \
+  -H "X-Admin-Key: change-me" \
+  -d '{
+    "model_name": "seg_rfm_v1",
+    "products": ["101130100000100"],
+    "auto_fit": true,
+    "limit": 500
+  }'
+```
+
+- Si el modelo no existe y `auto_fit` es `true`, se entrena con la vista RFM
+  (equivale a `/fit-from-db`).
+- La afinidad se mide como clientes de cada segmento que compraron las
+  categorías (`tipo_producto`) de los productos en `pos.venta_lineas`.
+- Respuesta: `best_segment`, `ranking` (share de compradores por segmento) y
+  `recipients` (cédula, nombre, email, teléfono y consentimientos).
 
 ### Entrenar/Asignar desde Postgres (datasets grandes)
 

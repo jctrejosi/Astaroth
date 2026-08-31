@@ -11,6 +11,4 @@ dev.js
 render.yaml
 README.md
 Dockerfile
-Caddyfile
-docker-entrypoint.sh
 .dockerignore

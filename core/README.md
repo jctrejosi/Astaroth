@@ -1,41 +1,54 @@
-# astaroth-core
+# core
 
-Núcleo compartido de **Astaroth**: ingesta y limpieza del legado Advantage
-Database Server + definiciones de features. **Sin dependencias de terceros**
-(stdlib puro) para que el servicio de sync y los pipelines lo importen sin
-fricción.
+Librería compartida de **Astaroth**: ingesta y limpieza del legado Advantage
+Database Server + bloques de features como el RFM. **Sin dependencias de
+terceros** (stdlib puro).
+
+## Estructura (plana, sin anidamiento)
+
+```
+core/
+├── __init__.py        # paquete `core`
+├── adt.py             # AdtTable: lector .ADT
+├── cleaning.py        # reglas de limpieza del legado
+├── config.py / logging.py
+└── RFM/               # bloque de features RFM
+    ├── rfm.py         # helper (genera el DDL de la vista)
+    └── rfm_view.sql   # la vista SQL lista para aplicar en Postgres
+```
+
+## Uso
+
+Añade `Astaroth/` al `PYTHONPATH` (este directorio `core/` es el paquete):
+
+```bash
+export PYTHONPATH=/ruta/a/Astaroth
+```
+
+```python
+from core import AdtTable, cleaning, rfm_view_sql
+
+with AdtTable("POSCLI.adt") as t:
+    for rec in t.iter_records(limit=10):
+        print(rec["CODCLI"], cleaning.fecha_yyyymmdd(rec.get("FECHAN")))
+
+# DDL de la vista RFM (para crearla en la BD de analytics)
+print(rfm_view_sql())
+```
 
 ## Qué contiene
 
 | Módulo | Qué hace |
 |---|---|
-| `astaroth_core.data.adt` | `AdtTable`: lector de solo lectura de `.ADT` (decodifica tipos, centinelas de vacío, fechas `AAAAMMDD`) |
-| `astaroth_core.data.cleaning` | Reglas de limpieza descubiertas en la migración: centinelas, `fecha_yyyymmdd`, anomalía del bulk, encoding |
-| `astaroth_core.features.rfm` | SQL versionado de la vista RFM (`analytics.vw_rfm_clientes`) |
-| `astaroth_core.config` / `logging` | Utilidades mínimas de configuración y logging |
-
-## Instalación
-
-```bash
-pip install -e /ruta/a/Astaroth/core
-```
-
-O, sin instalarlo, añade `Astaroth/core` al `PYTHONPATH`.
-
-## Uso
-
-```python
-from astaroth_core import AdtTable, cleaning
-
-with AdtTable("POSCLI.adt") as t:
-    for rec in t.iter_records(limit=10):
-        print(rec["CODCLI"], cleaning.fecha_yyyymmdd(rec.get("FECHAN")))
-```
+| `core.adt` | `AdtTable`: lector de solo lectura de `.ADT` (tipos, centinelas de vacío, fechas `AAAAMMDD`) |
+| `core.cleaning` | Reglas de limpieza del legado: centinelas, `fecha_yyyymmdd`, anomalía del bulk, encoding |
+| `core.RFM` | RFM: vista SQL por cliente (`recencia`, `frecuencia`, `monetario`, ticket, categorías) que se materializa en la BD de analytics |
+| `core.config` / `core.logging` | Utilidades mínimas |
 
 ## Por qué existe
 
-Con la réplica en Postgres como fuente para analytics/ML, este paquete **no**
-es el camino de datos habitual; es la capa de **ingesta** (de `.ADT` a
-Postgres) y la **fuente de verdad de las reglas de limpieza** del legado. El
-servicio de sync es su único consumidor directo; el resto lee vistas SQL en
-Postgres (definidas y versionadas aquí, en `features/`).
+Con la réplica en Postgres como fuente para analytics/ML, este paquete es la
+capa de **ingesta** (de `.ADT` a Postgres) y la **fuente de verdad de las
+reglas de limpieza** del legado, más los bloques de features compartidos
+(RFM). El servicio de sync y los pipelines lo importan; los algoritmos viven
+en los servicios de Astaroth (`clustering-api`, `XGBoost-api`, ...).

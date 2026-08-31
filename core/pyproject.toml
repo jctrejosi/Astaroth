@@ -5,9 +5,12 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "astaroth-core"
 version = "0.1.0"
-description = "Núcleo compartido de Astaroth: ingesta del legado Advantage (.ADT), limpieza de datos y definiciones de features."
+description = "Librería compartida de Astaroth: ingesta del legado Advantage (.ADT), limpieza de datos y bloque RFM."
 requires-python = ">=3.11"
 dependencies = []
 
-[tool.setuptools.packages.find]
-include = ["astaroth_core*"]
+# Estructura plana: este directorio ES el paquete `core`.
+# Se usa preferentemente vía PYTHONPATH (añadir `Astaroth/`), por lo que el
+# empaquetado pip queda como subpaquete de un monorepo si se necesita.
+[tool.setuptools]
+packages = ["core", "core.RFM"]

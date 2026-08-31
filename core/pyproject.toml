@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "astaroth-core"
+version = "0.1.0"
+description = "Núcleo compartido de Astaroth: ingesta del legado Advantage (.ADT), limpieza de datos y definiciones de features."
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.setuptools.packages.find]
+include = ["astaroth_core*"]

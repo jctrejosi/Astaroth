@@ -33,3 +33,16 @@ INFO:     Started server process [762528]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     127.0.0.1:56476 - "GET /health HTTP/1.1" 200 OK
+
+===== [clustering] 2026-08-31T10:21:52.519Z modo=dev =====
+INFO:     Will watch for changes in these directories: ['/home/jk/Projects/seeds/Astaroth/clustering-api']
+INFO:     Uvicorn running on http://127.0.0.1:8010 (Press CTRL+C to quit)
+INFO:     Started reloader process [770699] using WatchFiles
+INFO:     Started server process [770706]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:49986 - "GET /health HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [770706]

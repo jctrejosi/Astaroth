@@ -32,6 +32,7 @@ def _segment_stream(request: SegmentForProductsRequest):
                 auto_fit=request.auto_fit,
                 limit=request.limit,
                 progress=emit,
+                mode=request.mode,
             )
             q.put(("result", result))
         except Exception as e:
@@ -75,6 +76,7 @@ def get_segment_for_products(request: SegmentForProductsRequest):
             request.products,
             auto_fit=request.auto_fit,
             limit=request.limit,
+            mode=request.mode,
         )
     except FileNotFoundError as e:
         raise HTTPException(

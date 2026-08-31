@@ -105,6 +105,42 @@ def _client_contacts(cedulas: list[str]) -> dict:
     return contacts
 
 
+def _category_buyers(categories: list[str]) -> set:
+    """Clientes que compraron algo de las categorías dadas (unión)."""
+    if not categories:
+        return set()
+    rows = execute_read(
+        "SELECT DISTINCT cliente_cod FROM pos.venta_lineas "
+        "WHERE tipo_producto = ANY(%s) AND cliente_cod IS NOT NULL",
+        [categories],
+    )
+    return {r[0] for r in rows}
+
+
+def _exact_buyers(products: list[str]) -> set:
+    """Clientes que compraron al menos uno de los artículos exactos."""
+    rows = execute_read(
+        "SELECT DISTINCT cliente_cod FROM pos.venta_lineas "
+        "WHERE articulo_cod = ANY(%s) AND cliente_cod IS NOT NULL",
+        [products],
+    )
+    return {r[0] for r in rows}
+
+
+def _co_buyers(products: list[str]) -> set:
+    """Clientes que compraron TODOS los productos en la MISMA factura."""
+    if len(products) < 2:
+        return _exact_buyers(products)
+    rows = execute_read(
+        "SELECT cliente_cod FROM pos.venta_lineas "
+        "WHERE articulo_cod = ANY(%s) AND cliente_cod IS NOT NULL "
+        "GROUP BY factura_num, cliente_cod "
+        "HAVING count(DISTINCT articulo_cod) = %s",
+        [products, len(products)],
+    )
+    return {r[0] for r in rows}
+
+
 def _segment_ranking(
     labels_by_cedula: dict, buyers: set
 ) -> list[dict]:
@@ -136,6 +172,7 @@ def segment_for_products(
     auto_fit: bool = True,
     limit: int | None = None,
     progress=None,
+    mode: str = "multi",
 ) -> dict:
     def emit(stage: str, message: str, pct: int) -> None:
         if progress:
@@ -160,25 +197,19 @@ def segment_for_products(
     }
 
     emit("affinity", "Calculando afinidad con los productos seleccionados…", 60)
-    # Cédulas que compraron las categorías de los productos seleccionados.
     categories = _product_categories(products)
-    buyers: set = set()
-    if categories:
-        rows = execute_read(
-            "SELECT DISTINCT cliente_cod FROM pos.venta_lineas "
-            "WHERE tipo_producto = ANY(%s) AND cliente_cod IS NOT NULL",
-            [categories],
-        )
-        buyers = {r[0] for r in rows}
 
-    # Sin categorías (productos sin ventas): match exacto por articulo.
-    if not buyers:
-        rows = execute_read(
-            "SELECT DISTINCT cliente_cod FROM pos.venta_lineas "
-            "WHERE articulo_cod = ANY(%s) AND cliente_cod IS NOT NULL",
-            [products],
-        )
-        buyers = {r[0] for r in rows}
+    # Dos modos que NO se pisan entre sí:
+    #   multi  → unión: clientes que compraron CUALQUIER producto/categoría.
+    #   bundle → co-compra: clientes que compraron TODOS juntos (misma factura).
+    bundle_fallback = False
+    if mode == "bundle" and len(products) >= 2:
+        buyers = _co_buyers(products)
+        if not buyers:
+            bundle_fallback = True
+            buyers = _category_buyers(categories) or _exact_buyers(products)
+    else:
+        buyers = _category_buyers(categories) or _exact_buyers(products)
 
     ranking = _segment_ranking(labels_by_cedula, buyers)
     if not ranking:
@@ -207,16 +238,32 @@ def segment_for_products(
 
     emit("done", "Segmentación completada", 100)
 
+    if mode == "bundle":
+        if bundle_fallback:
+            note = (
+                f"Co-compra de los {len(products)} productos casi nula; "
+                f"fallback a {len(buyers)} clientes que compraron sus categorías"
+            )
+        else:
+            note = (
+                f"{len(buyers)} clientes compraron los {len(products)} productos "
+                f"juntos (misma factura)"
+            )
+    else:
+        note = (
+            f"{len(buyers)} clientes compraron productos de las categorías "
+            f"{', '.join(categories[:5]) if categories else '(sin categorías, match exacto)'}"
+        )
+
     return {
         "model_name": model_name,
+        "mode": mode,
         "best_segment": best["segment"],
         "ranking": ranking,
         "buyers": len(buyers),
         "categories": categories,
-        "affinity_note": (
-            f"{len(buyers)} clientes compraron productos de las categorías "
-            f"{', '.join(categories[:5]) if categories else '(sin categorías, match exacto)'}"
-        ),
+        "bundle_fallback": bundle_fallback,
+        "affinity_note": note,
         # Tamaño real del segmento ganador (sin el tope de `limit`).
         "segment_total": best["total"],
         "total": len(seg_ids),

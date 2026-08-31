@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -36,5 +36,13 @@ class SegmentForProductsRequest(BaseModel):
         description=(
             "Si es true, responde como SSE (text/event-stream) con eventos de "
             "progreso por etapa y el resultado final"
+        )
+    )
+
+    mode: Literal["multi", "bundle"] = Field(
+        "multi",
+        description=(
+            "multi: unión (clientes que compraron cualquiera de los productos). "
+            "bundle: co-compra (clientes que compraron todos juntos en la misma factura)."
         )
     )

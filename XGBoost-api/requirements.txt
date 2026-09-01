@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+pydantic
+pydantic-settings
+python-dotenv
+
+pandas
+numpy
+
+xgboost
+scikit-learn
+shap
+
+openpyxl
+python-multipart

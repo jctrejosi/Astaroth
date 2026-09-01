@@ -1,0 +1,13 @@
+# Stack pesado (torch + ray[tune] + mlflow + celery).
+# - plan: empieza en "starter"; sube a "standard" (2 GB RAM) si el build
+#   o el arranque falla por memoria/espacio.
+# - MLflow, Celery y Redis son opcionales: la API levanta /health sin ellos
+#   (los defaults están en api/config.py).
+services:
+  - type: web
+    name: causal-transformer-api
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health

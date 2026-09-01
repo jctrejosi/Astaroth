@@ -1,0 +1,52 @@
+xgboost-api/
+├── app/
+│   ├── main.py
+│   ├── api/
+│   │   └── v1/
+│   │       ├── routers/
+│   │       │   ├── health.py
+│   │       │   ├── train.py
+│   │       │   ├── predict.py
+│   │       │   ├── models.py
+│   │       │   ├── metrics.py
+│   │       │   └── admin.py
+│   │       └── __init__.py
+│   ├── core/
+│   │   ├── config.py
+│   │   ├── security.py
+│   │   └── logging.py
+│   ├── schemas/
+│   │   ├── train.py
+│   │   ├── predict.py
+│   │   ├── model.py
+│   │   ├── metrics.py
+│   │   └── common.py
+│   ├── services/
+│   │   ├── data_service.py
+│   │   ├── feature_engineering.py
+│   │   ├── trainer.py
+│   │   ├── predictor.py
+│   │   ├── model_store.py
+│   │   ├── model_registry.py
+│   │   └── metrics_service.py
+│   ├── ml/
+│   │   ├── xgboost_wrapper.py
+│   │   ├── dataset_builder.py
+│   │   ├── time_series_supervised.py
+│   │   └── artifacts.py
+│   └── utils/
+│       ├── datetime_utils.py
+│       ├── file_utils.py
+│       └── validation.py
+├── saved_models/
+│   └── .gitkeep
+├── tests/
+│   ├── test_train.py
+│   ├── test_predict.py
+│   ├── test_models.py
+│   └── test_features.py
+├── requirements.txt
+├── dockerfile
+├── docker-compose.yml
+├── .env.example
+└── readme.md

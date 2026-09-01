@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: xgboost-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: APP_NAME
+        value: "XGBoost API"
+      - key: APP_VERSION
+        value: "1.0.0"
+      - key: MODELS_DIR
+        value: "saved_models"
+      # Secreto: se pide al crear el servicio (o se agrega luego en el dashboard).
+      - key: ADMIN_KEY
+        sync: false

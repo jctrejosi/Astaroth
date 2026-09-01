@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: linear-regression-backend
+    runtime: docker
+    plan: free
+
+    # El backend vive en Code/Backend dentro del monorepo.
+    rootDir: Code/Backend
+    dockerfilePath: ./Code/Backend/Dockerfile
+    dockerContext: ./Code/Backend
+
+    # La app ya expone /health (ver app/routes.py).
+    healthCheckPath: /health
+
+    envVars:
+      # --- Opcional: explicación de resultados con un LLM ---
+      # Los endpoints /api/v1.0/regression y /api/v1.0/converter_file
+      # funcionan sin estas variables. Solo /api/v1.0/llm las necesita.
+      - key: LLM_GROQ
+        value: "false"
+      - key: GROQ_API_KEY
+        sync: false
+      - key: LLM_GROQ_URL
+        sync: false

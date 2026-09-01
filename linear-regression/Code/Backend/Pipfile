@@ -1,0 +1,22 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+flask-cors = "*"
+pyreadstat = "*"
+openpyxl = "*"
+scipy = "*"
+flask = "*"
+openai = "*"
+statsmodels = "*"
+dotenv = "*"
+xlrd = "*"
+gunicorn = "*"
+gpt4all = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.13"

@@ -1,0 +1,20 @@
+# Entornos virtuales y caché de Python
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Configuración y secretos
+.env
+*.env
+
+# Control de versiones
+.git
+.gitignore
+
+# Documentación y archivos que no van a la imagen
+readme.md
+Pipfile
+Pipfile.lock

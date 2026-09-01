@@ -1,0 +1,39 @@
+# Ignorar entornos virtuales de Python
+venv/
+.env
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+*.swp
+
+# Ignorar archivos de configuración y secretos
+.env
+*.env
+config.json
+secrets.json
+
+# Ignorar logs y archivos temporales
+logs/
+*.log
+*.out
+*.pid
+*.tmp
+*.bak
+
+# Ignorar bases de datos locales
+*.sqlite3
+db.sqlite3
+
+# Ignorar archivos de compilación y caché
+.DS_Store
+.idea/
+.vscode/
+*.iml
+
+# Ignorar archivos de despliegue
+*.tar.gz
+*.zip
+node_modules/
+dist/
+build/

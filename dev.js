@@ -4,7 +4,8 @@
  * Astaroth — lanzador de todos los servicios de ML.
  *
  * Uso:
- *   node dev.js            # DEV: levanta los 5 servicios con --reload, en segundo plano
+ *   node dev.js            # DEV: instala dependencias (crea .venv si falta), levanta
+ *                          #   los 5 servicios con --reload, en segundo plano
  *   node dev.js --prod     # PRODUCCIÓN: uvicorn sin --reload
  *   node dev.js --stop     # Detiene los servicios levantados por dev.js
  *   node dev.js --help     # Esta ayuda

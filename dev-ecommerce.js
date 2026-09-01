@@ -14,7 +14,8 @@
  * NO se levantan aquí; usa `node dev.js` para el set completo.
  *
  * Uso:
- *   node dev-ecommerce.js            # DEV: servicios con --reload, en segundo plano
+ *   node dev-ecommerce.js            # DEV: instala dependencias (crea .venv si falta),
+ *                                    #   servicios con --reload, en segundo plano
  *   node dev-ecommerce.js --prod     # PRODUCCIÓN: uvicorn sin --reload
  *   node dev-ecommerce.js --stop     # Detiene los servicios de este script
  *   node dev-ecommerce.js --help     # Esta ayuda

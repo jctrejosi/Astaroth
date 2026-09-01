@@ -102,6 +102,37 @@ function openLog(name, mode) {
   return { fd, logPath };
 }
 
+// ── Dependencias ────────────────────────────────────────────
+
+/**
+ * Crea el .venv e instala requirements.txt si el venv del servicio no existe.
+ * Devuelve true si las dependencias quedaron listas (ya estaban o se instalaron).
+ */
+function ensureDeps(svc) {
+  const color = C[svc.name] || "";
+  const cwd = path.join(ROOT, svc.dir);
+  if (fs.existsSync(path.join(cwd, ".venv", "bin", "python"))) return true;
+
+  console.log(
+    `${color}[${svc.name}]${C.reset} 📦 creando .venv e instalando dependencias...`,
+  );
+  const steps = [
+    ["python3", "-m", "venv", ".venv"],
+    [".venv", "bin", "pip", "install", "-r", "requirements.txt"],
+  ];
+  for (const step of steps) {
+    const r = spawnSync(step[0], step.slice(1), { cwd, stdio: "inherit" });
+    if (r.status !== 0) {
+      console.error(
+        `${color}[${svc.name}]${C.reset} ✘ falló la instalación: ${step.join(" ")} — se omite este servicio`,
+      );
+      return false;
+    }
+  }
+  console.log(`${color}[${svc.name}]${C.reset} ✅ dependencias listas`);
+  return true;
+}
+
 // ── Arranque de servicios ───────────────────────────────────
 
 function resolveCmd(svc, mode) {
@@ -221,8 +252,17 @@ async function run(services, id, argv) {
   console.log(`🧪 Astaroth [${id}] — modo ${MODE.toUpperCase()}  (logs → logs/*.log)`);
   console.log("");
 
+  // Instalar dependencias faltantes ANTES de arrancar: si un servicio falla
+  // la instalación, se omite más abajo.
+  const sinDeps = new Set();
+  for (const svc of services) {
+    if (!ensureDeps(svc)) sinDeps.add(svc.name);
+  }
+  console.log("");
+
   const pids = {};
   for (const svc of services) {
+    if (sinDeps.has(svc.name)) continue; // falló la instalación de dependencias
     const pid = startService(svc, MODE);
     if (pid) pids[svc.name] = pid;
   }
@@ -230,7 +270,7 @@ async function run(services, id, argv) {
 
   for (const svc of services) {
     if (!pids[svc.name]) {
-      console.log(`${C[svc.name] || ""}[${svc.name}]${C.reset} ⏭  sin venv — omitido`);
+      console.log(`${C[svc.name] || ""}[${svc.name}]${C.reset} ⏭  dependencias fallidas — omitido`);
       continue;
     }
     console.log(`${C[svc.name] || ""}[${svc.name}]${C.reset} ⏳ esperando :${svc.port}...`);

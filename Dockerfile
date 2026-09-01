@@ -11,6 +11,11 @@ FROM python:3.11-slim AS base
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
+# git: hay dependencias que pip instala desde repositorios GitHub
+# (p. ej. causalTransformer-api: git+https://github.com/fadel/pytorch_ema.git)
+RUN apt-get update && apt-get install -y --no-install-recommends git \
+    && rm -rf /var/lib/apt/lists/*
+
 # ---- Etapa 1: clustering-api ----
 FROM base AS clustering-build
 WORKDIR /build/clustering-api

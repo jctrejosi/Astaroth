@@ -1,29 +1,58 @@
-# Servicio único Astaroth: clustering-api + xgboost-api + uplift-api +
-# transformerApi + causalTransformer-api + proxy Caddy.
-# Dockerfile en la raíz del repo; Caddy rutea por prefijo.
+# Astaroth — tres servicios independientes (un proceso Python por contenedor).
 #
-# ⚠️ RAM: por defecto solo arrancan clustering/xgboost/uplift (~700 MB en
-# total) → plan standard (4 GB) sobra y evita el crash-loop por OOM.
-# Los servicios PyTorch (transformer:8013, causal:8014) consumen ~2 GB c/u
-# y NO se arrancan salvo que definas ASTROTH_FULL=1 (ahí sí conviene un plan
-# mayor). Si prefieres separarlos, cada servicio ya tiene su propio
-# Dockerfile para desplegarlos de forma individual.
+# Cada servicio cabe holgado en plan starter (512 MB): usa ~180 MB.
+# Los modelos entrenados viajan en la imagen (saved_models están trackeados).
+#
+# Cómo desplegar:
+#   A) Blueprint: si este repo está conectado a Render como Blueprint, al
+#      pushear crea los 3 servicios con estos ajustes (completa los valores
+#      de ADMIN_KEY y DATABASE_URL en el dashboard).
+#   B) Manual: crea 3 Web Services en Render con cada Dockerfile (abajo) y
+#      estos mismos envs/healthCheck.
+#
+# URLs resultantes (ejemplo): https://astaroth-clustering.onrender.com
+#                            https://astaroth-xgboost.onrender.com
+#                            https://astaroth-uplift.onrender.com
+# Luego, en el backend de mercaldas (Render) apunta:
+#   CLUSTERING_API_URL=https://astaroth-clustering.onrender.com
+#   XGBOOST_API_URL=https://astaroth-xgboost.onrender.com
+#   UPLIFT_API_URL=https://astaroth-uplift.onrender.com
+
 services:
   - type: web
-    name: astaroth-ml
+    name: astaroth-clustering
     runtime: docker
-    plan: standard
-    dockerfilePath: ./Dockerfile
-    dockerContext: .
-    healthCheckPath: /clustering/health
+    plan: starter
+    dockerfilePath: ./clustering-api/Dockerfile
+    dockerContext: ./clustering-api
+    healthCheckPath: /health
     envVars:
-      # Clave de admin compartida para los /admin/* de los servicios (protege borrados)
+      # Clave compartida para los /admin/* y /segment-clients
       - key: ADMIN_KEY
         sync: false
-      # Conexión a la réplica de analytics (Postgres). Sin esto, los
-      # endpoints de clustering que leen clientes (RFM/segmentos) devuelven 503.
+      # Réplica de analytics (Postgres). Sin esto, los endpoints que leen
+      # clientes (RFM/segmentos) devuelven 503.
       - key: DATABASE_URL
         sync: false
-      # Opcional: "1" para incluir transformer/causal (requiere ≥4 GB de RAM)
-      # - key: ASTROTH_FULL
-      #   value: "0"
+
+  - type: web
+    name: astaroth-xgboost
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./XGBoost-api/Dockerfile
+    dockerContext: ./XGBoost-api
+    healthCheckPath: /health
+    envVars:
+      - key: ADMIN_KEY
+        sync: false
+
+  - type: web
+    name: astaroth-uplift
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./uplift-api/Dockerfile
+    dockerContext: ./uplift-api
+    healthCheckPath: /health
+    envVars:
+      - key: ADMIN_KEY
+        sync: false

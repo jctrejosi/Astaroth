@@ -9,6 +9,8 @@ en una transacción de solo lectura.
 """
 
 import re
+import threading
+import time
 
 import numpy as np
 import psycopg
@@ -21,6 +23,14 @@ _FORBIDDEN = (
     "INSERT", "UPDATE", "DELETE", "DROP", "ALTER", "CREATE", "TRUNCATE",
     "GRANT", "REVOKE", "COPY", "VACUUM", "CALL", "DO", "MERGE",
 )
+
+# Caché en memoria de read_features: la consulta de la vista RFM tarda
+# ~30-40 s contra la réplica y se repite en cada request (segment-clients,
+# segment-for-products, assign-from-db...). Con un solo worker de uvicorn
+# basta un módulo-global con TTL.
+_CACHE_TTL = 15 * 60  # segundos (los datos de la réplica cambian lento)
+_cache: dict = {}
+_cache_lock = threading.Lock()
 
 
 class DatabaseError(Exception):
@@ -107,6 +117,15 @@ def read_features(
             "DATABASE_URL no está configurada en el servicio de clustering"
         )
 
+    # Caché TTL por (query, id_column, limit).
+    key = (query, id_column, limit)
+    now = time.monotonic()
+    with _cache_lock:
+        hit = _cache.get(key)
+        if hit is not None and now - hit[0] < _CACHE_TTL:
+            ids, feature_names, X = hit[1]
+            return ids, feature_names, X.copy()
+
     sql = _apply_limit(_validate_select(query), limit)
 
     try:
@@ -142,4 +161,6 @@ def read_features(
         raise ValueError("no quedan columnas de features tras excluir id_column")
 
     X = _to_matrix(rows, feat_idx)
+    with _cache_lock:
+        _cache[key] = (time.monotonic(), (ids, feature_names, X))
     return ids, feature_names, X

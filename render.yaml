@@ -2,15 +2,17 @@
 # transformerApi + causalTransformer-api + proxy Caddy.
 # Dockerfile en la raíz del repo; Caddy rutea por prefijo.
 #
-# ⚠️ RAM: los servicios PyTorch (transformer:8013, causal:8014) cargan torch
-# (~2 GB c/u en runtime). Para el contenedor completo usa un plan de AL MENOS
-# 4 GB (Starter = 512 MB no alcanza). Si prefieres separarlos, crea servicios
-# web individuales con su propio Dockerfile (cada uno ya lo tiene).
+# ⚠️ RAM: por defecto solo arrancan clustering/xgboost/uplift (~700 MB en
+# total) → plan standard (4 GB) sobra y evita el crash-loop por OOM.
+# Los servicios PyTorch (transformer:8013, causal:8014) consumen ~2 GB c/u
+# y NO se arrancan salvo que definas ASTROTH_FULL=1 (ahí sí conviene un plan
+# mayor). Si prefieres separarlos, cada servicio ya tiene su propio
+# Dockerfile para desplegarlos de forma individual.
 services:
   - type: web
     name: astaroth-ml
     runtime: docker
-    plan: starter
+    plan: standard
     dockerfilePath: ./Dockerfile
     dockerContext: .
     healthCheckPath: /clustering/health
@@ -18,3 +20,10 @@ services:
       # Clave de admin compartida para los /admin/* de los servicios (protege borrados)
       - key: ADMIN_KEY
         sync: false
+      # Conexión a la réplica de analytics (Postgres). Sin esto, los
+      # endpoints de clustering que leen clientes (RFM/segmentos) devuelven 503.
+      - key: DATABASE_URL
+        sync: false
+      # Opcional: "1" para incluir transformer/causal (requiere ≥4 GB de RAM)
+      # - key: ASTROTH_FULL
+      #   value: "0"

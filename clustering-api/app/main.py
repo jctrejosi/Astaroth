@@ -9,6 +9,7 @@ from app.routes.models import router as models_router
 from app.routes.metrics import router as metrics_router
 from app.routes.admin import router as admin_router
 from app.routes.segment import router as segment_router
+from app.routes.clients import router as clients_router
 
 
 app = FastAPI(
@@ -23,3 +24,4 @@ app.include_router(models_router, tags=["Models"])
 app.include_router(metrics_router, tags=["Metrics"])
 app.include_router(admin_router, tags=["Admin"])
 app.include_router(segment_router, tags=["Segment"])
+app.include_router(clients_router, tags=["Clients"])

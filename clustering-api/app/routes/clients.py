@@ -356,10 +356,11 @@ def segment_clients(request: SegmentClientsRequest):
 _OPTIONS_CACHE_TTL = 30 * 60
 
 
-def _top_values(col: str, limit: int) -> list[str]:
+def _top_values(col: str, limit: int, drop_digits: bool = True) -> list[str]:
+    extra = "AND {0} !~ '^[0-9]+$' ".format(col) if drop_digits else ""
     rows = execute_read(
         f"SELECT {col}, count(*) AS n FROM pos.clientes "
-        f"WHERE {col} IS NOT NULL AND btrim({col}) <> '' "
+        f"WHERE {col} IS NOT NULL AND btrim({col}) <> '' {extra}"
         f"GROUP BY {col} ORDER BY n DESC LIMIT {limit}"
     )
     return [str(r[0]).strip() for r in rows if r[0]]
@@ -382,7 +383,7 @@ def client_filter_options():
             "barrios": _top_values("barrio", 80),
             "profesiones": _top_values("profesion", 40),
             "estadosCiviles": _top_values("estado_civil", 20),
-            "sucursales": _top_values("sucursal", 30),
+            "sucursales": _top_values("sucursal", 30, drop_digits=False),
             "sexos": ["F", "M"],
         }
     except DatabaseError as e:

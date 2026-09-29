@@ -21,20 +21,26 @@ de Mercaldas (plataforma de datos → estos servicios → campañas).
 
 ## Local: `node dev.js`
 
-Levanta los servicios en segundo plano con logs en `logs/*.log`:
+Un solo lanzador con **selección por parámetros** (segundo plano, logs en
+`logs/*.log`):
 
 ```bash
-node dev.js            # dev (uvicorn --reload)
-node dev.js --prod     # producción (sin --reload)
-node dev.js --stop     # detiene todo
+node dev.js                        # los 5 servicios
+node dev.js --analytics            # solo lo que consume el ecommerce/analytics:
+                                   #   clustering (8010) + xgboost (8011) + uplift (8012)
+node dev.js --clustering --uplift  # servicios concretos (combinables)
+node dev.js --transformer --causal # los pesados (PyTorch)
+node dev.js --prod                 # producción (sin --reload)
+node dev.js --stop [flags]         # detiene (todos, o solo los seleccionados)
 node dev.js --help
 ```
 
-Cada servicio usa su propio `.venv` (si falta, el script te dice cómo crearlo:
+Cada servicio usa su propio `.venv`
+(si falta, el script te dice cómo crearlo:
 `cd servicio && python3 -m venv .venv && .venv/bin/pip install -r requirements.txt`).
 Los servicios PyTorch (`transformerApi`, `causalTransformer-api`) necesitan
 RAM y tardan en importar torch; en local conviene levantarlos solo si los vas
-a usar.
+a usar (o usar `--analytics` para evitarlos).
 
 Docs de cada API en `http://localhost:{puerto}/docs`.
 

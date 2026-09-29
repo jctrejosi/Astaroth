@@ -25,6 +25,8 @@ const fs = require("node:fs");
 const net = require("node:net");
 const path = require("node:path");
 
+const IS_WIN = process.platform === "win32";
+
 const ROOT = __dirname;
 const LOGS_DIR = path.join(ROOT, "logs");
 const PIDS_FILE = path.join(LOGS_DIR, ".pids.json");
@@ -167,6 +169,41 @@ function openLog(name, mode) {
 
 // ── Dependencias ────────────────────────────────────────────
 
+// En Windows los venv viven en .venv\Scripts y el intérprete es python.exe;
+// en Linux/macOS en .venv/bin y es `python`.
+const VENV_BIN = IS_WIN ? "Scripts" : "bin";
+
+/** Ruta al intérprete Python del venv del servicio. */
+function venvPython(cwd) {
+  return path.join(cwd, ".venv", VENV_BIN, IS_WIN ? "python.exe" : "python");
+}
+
+/** Sufijo de comando pip para mostrar en logs/ayuda (multiplataforma). */
+function pipHint(dir) {
+  return IS_WIN
+    ? `cd ${dir} && py -3 -m venv .venv && .venv\\Scripts\\python -m pip install -r requirements.txt`
+    : `cd ${dir} && python3 -m venv .venv && .venv/bin/pip install -r requirements.txt`;
+}
+
+/**
+ * Localiza un Python del sistema para crear el venv.
+ * Windows: `py -3` (launcher oficial) y luego `python`; Linux/macOS: `python3`.
+ */
+function findSystemPython() {
+  const candidates = IS_WIN
+    ? [["py", ["-3"]], ["python", []], ["python3", []]]
+    : [["python3", []], ["python", []]];
+  for (const [cmd, base] of candidates) {
+    try {
+      const r = spawnSync(cmd, [...base, "--version"], { stdio: "ignore" });
+      if (r.status === 0) return { cmd, base };
+    } catch {
+      /* no existe: probar el siguiente */
+    }
+  }
+  return null;
+}
+
 /**
  * Crea el .venv e instala requirements.txt si el venv del servicio no existe.
  * Devuelve true si las dependencias quedaron listas (ya estaban o se instalaron).
@@ -174,18 +211,28 @@ function openLog(name, mode) {
 function ensureDeps(svc) {
   const color = C[svc.name] || "";
   const cwd = path.join(ROOT, svc.dir);
-  if (fs.existsSync(path.join(cwd, ".venv", "bin", "python"))) return true;
+  if (fs.existsSync(venvPython(cwd))) return true;
+
+  const sysPy = findSystemPython();
+  if (!sysPy) {
+    console.error(
+      `${color}[${svc.name}]${C.reset} ✘ no encontré Python 3 en el sistema ` +
+        (IS_WIN ? "(instala Python y marca 'Add python.exe to PATH', o usa `py -3`)." : "(instala python3)."),
+    );
+    return false;
+  }
 
   console.log(`${color}[${svc.name}]${C.reset} 📦 creando .venv e instalando dependencias...`);
   const steps = [
-    ["python3", "-m", "venv", ".venv"],
-    [".venv", "bin", "pip", "install", "-r", "requirements.txt"],
+    [sysPy.cmd, [...sysPy.base, "-m", "venv", ".venv"]],
+    // `python -m pip` es más robusto que invocar el script pip del venv.
+    [venvPython(cwd), ["-m", "pip", "install", "-r", "requirements.txt"]],
   ];
-  for (const step of steps) {
-    const r = spawnSync(step[0], step.slice(1), { cwd, stdio: "inherit" });
+  for (const [cmd, args] of steps) {
+    const r = spawnSync(cmd, args, { cwd, stdio: "inherit", shell: false });
     if (r.status !== 0) {
       console.error(
-        `${color}[${svc.name}]${C.reset} ✘ falló la instalación: ${step.join(" ")} — se omite este servicio`,
+        `${color}[${svc.name}]${C.reset} ✘ falló la instalación: ${[cmd, ...args].join(" ")} — se omite este servicio`,
       );
       return false;
     }
@@ -197,11 +244,11 @@ function ensureDeps(svc) {
 // ── Arranque de servicios ───────────────────────────────────
 
 function resolveCmd(svc, mode) {
-  const py = path.join(ROOT, svc.dir, ".venv", "bin", "python");
+  const py = venvPython(path.join(ROOT, svc.dir));
   if (!fs.existsSync(py)) {
     console.warn(
       `${C[svc.name] || ""}[${svc.name}]${C.reset} ⚠️  ${svc.dir}/.venv no existe — crealo con: ` +
-        `cd ${svc.dir} && python3 -m venv .venv && .venv/bin/pip install -r requirements.txt`,
+        pipHint(svc.dir),
     );
     return null;
   }
@@ -228,7 +275,7 @@ function startService(svc, mode) {
     cwd: path.join(ROOT, svc.dir),
     stdio: ["ignore", fd, fd],
     detached: true,
-    shell: process.platform === "win32",
+    windowsHide: true,
   });
 
   child.on("error", (err) => {

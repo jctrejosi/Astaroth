@@ -55,7 +55,7 @@ async def train_endpoint(payload: dict, bg: BackgroundTasks):
     Recibe el JSON con 'data' y 'model_name'.
     Ejecuta el entrenamiento en segundo plano.
     """
-    from api.main import config  # Importamos la config global de tu main
+    from apis.config import config
 
     data_json = payload.get('data')
     model_name = payload.get('model_name', 'default_model')

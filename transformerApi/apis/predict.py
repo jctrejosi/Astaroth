@@ -67,7 +67,7 @@ class WeatherPredictor:
 # --- ENDPOINT DE PREDICCIÓN ---
 @router.post("/predict")
 async def get_prediction(payload: dict):
-    from api.main import config  # Importación para evitar círculos
+    from apis.config import config
     
     try:
         model_id = payload.get('model_name', 'default_model')

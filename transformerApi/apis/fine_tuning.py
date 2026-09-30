@@ -54,7 +54,7 @@ def execute_fine_tuning_logic(data_json, config, model_path, scaler_path):
 # --- ENDPOINT DE LA API ---
 @router.post("/fine_tuning")
 async def fine_tune_endpoint(payload: dict, bg: BackgroundTasks):
-    from api.main import config  # Importar config global
+    from apis.config import config
 
     model_id = payload.get('model_name', 'default_model')
     data_json = payload.get('data')

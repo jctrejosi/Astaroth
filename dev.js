@@ -20,7 +20,12 @@
  *
  * Logs: logs/<servicio>.log · PIDs: logs/.pids.json.
  */
-const { spawn, spawnSync } = require("node:child_process");
+const cp = require("node:child_process");
+// En Windows, un proceso con `detached` y sin `windowsHide` abre una terminal
+// nueva por servicio. Se envuelven spawn/spawnSync para ocultarla siempre (en
+// otros SO la opción se ignora).
+const spawn = (cmd, args, opts = {}) => cp.spawn(cmd, args, { windowsHide: true, ...opts });
+const spawnSync = (cmd, args, opts = {}) => cp.spawnSync(cmd, args, { windowsHide: true, ...opts });
 const fs = require("node:fs");
 const net = require("node:net");
 const path = require("node:path");

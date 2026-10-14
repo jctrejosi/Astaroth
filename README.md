@@ -76,6 +76,32 @@ docker build -t astaroth . && docker run --rm -p 10000:10000 -e PORT=10000 astar
 # probar: curl localhost:10000/clustering/health
 ```
 
+## Contenedor con puertos separados (`docker compose`)
+
+Un solo contenedor, cada servicio en su propio puerto del host:
+
+```bash
+docker compose up --build
+# clustering  → http://localhost:8010/docs
+# xgboost     → http://localhost:8011/docs
+# uplift      → http://localhost:8012/docs
+# transformer → http://localhost:8013/docs   (PyTorch)
+# causal      → http://localhost:8014/docs   (PyTorch)
+```
+
+Comportamiento por variable de entorno (también en `docker-compose.yml` o un
+`.env`):
+
+- `ASTROTH_HOST` — host de escucha de los uvicorn (defecto `0.0.0.0`).
+- `ASTROTH_FULL` — `1` (defecto) arranca los 5; `0` solo el trío ligero.
+- `ASTROTH_PROXY` — `1` arranca Caddy por prefijo en `$PORT`; `0` (defecto en
+  compose) expone solo los puertos directos.
+- `ADMIN_KEY` y `DATABASE_URL` — igual que en Render.
+
+Los `uvicorn` escuchan en todas las interfaces, así que **todos** los puertos
+(no solo los publicados) son alcanzables; para publicar solo algunos, edita la
+sección `ports:` del compose.
+
 ## Notas
 
 - Los modelos guardados (`saved_models/`) están gitignored y viven en el

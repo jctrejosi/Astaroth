@@ -1,0 +1,55 @@
+# Astaroth — TODO en un solo contenedor, cada servicio expuesto en su propio
+# puerto del host.
+#
+#   docker compose up --build
+#
+#   clustering   → http://localhost:8010/docs
+#   xgboost      → http://localhost:8011/docs
+#   uplift       → http://localhost:8012/docs
+#   transformer  → http://localhost:8013/docs   (PyTorch ↓ RAM)
+#   causal       → http://localhost:8014/docs   (PyTorch ↓ RAM)
+#
+# Variables (define un `.env` junto a este archivo, o expórtalas):
+#   ADMIN_KEY     clave de los /admin/* y /segment-clients (defecto: change-me)
+#   DATABASE_URL  réplica de analytics (Postgres) que lee clustering-api; sin
+#                 ella, los endpoints que consultan clientes (RFM) dan 503.
+#
+# Solo el trío ligero (clustering+xgboost+uplift): pon ASTROTH_FULL: "0".
+# Los dos PyTorch consumen ~2 GB de RAM cada uno.
+
+services:
+  astaroth:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: astaroth:local
+    container_name: astaroth
+    restart: unless-stopped
+    environment:
+      # Escucha en todas las interfaces para que los puertos sean alcanzables.
+      ASTROTH_HOST: "0.0.0.0"
+      # Sin Caddy: cada servicio va directo a su puerto (modo puertos separados).
+      ASTROTH_PROXY: "0"
+      # Incluye transformer (8013) y causal (8014). "0" para solo el trío ligero.
+      ASTROTH_FULL: "1"
+      ADMIN_KEY: "${ADMIN_KEY:-change-me}"
+      DATABASE_URL: "${DATABASE_URL:-}"
+    ports:
+      - "8010:8010"   # clustering-api
+      - "8011:8011"   # XGBoost-api
+      - "8012:8012"   # uplift-api
+      - "8013:8013"   # transformerApi     (PyTorch)
+      - "8014:8014"   # causalTransformer-api (PyTorch)
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8010/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 120s
+    # Modelos entrenados (saved_models). Están gitignored y no viajan en la
+    # imagen; descomenta para usar los de tu máquina (p. ej. prop_activo /
+    # prop_segmento de XGBoost-api). Solo lectura si no vas a re-entrenar.
+    # volumes:
+    #   - ./clustering-api/saved_models:/app/clustering-api/saved_models:ro
+    #   - ./XGBoost-api/saved_models:/app/xgboost-api/saved_models:ro
+    #   - ./uplift-api/saved_models:/app/uplift-api/saved_models:ro

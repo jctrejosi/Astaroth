@@ -90,6 +90,8 @@ COPY Caddyfile ./Caddyfile
 COPY docker-entrypoint.sh ./docker-entrypoint.sh
 RUN chmod +x ./docker-entrypoint.sh
 
-EXPOSE 10000
+# Puertos de cada servicio (accesibles si se publican con `-p`/compose) + el del
+# proxy Caddy (modo Render, un único puerto).
+EXPOSE 8010 8011 8012 8013 8014 10000
 
 CMD ["./docker-entrypoint.sh"]

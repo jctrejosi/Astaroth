@@ -1,8 +1,9 @@
 # syntax=docker/dockerfile:1
 
 # ============================================================
-# Astaroth — un solo contenedor con los 3 servicios de ML + Caddy
+# Astaroth — un solo contenedor con los servicios de ML + optimización + Caddy
 #   clustering-api :8010  ·  xgboost-api :8011  ·  uplift-api :8012
+#   transformerApi :8013  ·  causalTransformer-api :8014  ·  highs :8015
 # Caddy expone un solo puerto público y rutea por prefijo.
 # ============================================================
 
@@ -56,6 +57,17 @@ RUN python3 -m venv /opt/causal-venv \
     && /opt/causal-venv/bin/pip install --no-cache-dir -r requirements.txt
 COPY causalTransformer-api/ ./
 
+# ---- Etapa 6: highs (optimización LP/MIP/QP sobre HiGHS) ----
+# Misma base que el runtime (3.11): un venv construido con otra versión menor
+# de Python no es trasladable entre etapas.
+FROM base AS highs-build
+WORKDIR /build/highs
+COPY highs/requirements.lock .
+RUN python3 -m venv /opt/highs-venv \
+    && /opt/highs-venv/bin/pip install --no-cache-dir -r requirements.lock
+COPY highs/ ./
+RUN /opt/highs-venv/bin/pip install --no-cache-dir --no-deps .
+
 # ---- Runtime ----
 FROM base
 
@@ -72,18 +84,20 @@ RUN curl -fsSL "https://github.com/caddyserver/caddy/releases/download/v${CADDY_
     | tar -xz -C /usr/local/bin caddy \
     && chmod +x /usr/local/bin/caddy
 
-# Venvs + código de los 5 servicios
+# Venvs + código de los servicios
 COPY --from=clustering-build /opt/clustering-venv /opt/clustering-venv
 COPY --from=xgboost-build /opt/xgboost-venv /opt/xgboost-venv
 COPY --from=uplift-build /opt/uplift-venv /opt/uplift-venv
 COPY --from=transformer-build /opt/transformer-venv /opt/transformer-venv
 COPY --from=causal-build /opt/causal-venv /opt/causal-venv
+COPY --from=highs-build /opt/highs-venv /opt/highs-venv
 
 COPY --from=clustering-build /build/clustering-api ./clustering-api
 COPY --from=xgboost-build /build/xgboost-api ./xgboost-api
 COPY --from=uplift-build /build/uplift-api ./uplift-api
 COPY --from=transformer-build /build/transformerApi ./transformerApi
 COPY --from=causal-build /build/causalTransformer-api ./causalTransformer-api
+COPY --from=highs-build /build/highs ./highs
 
 # Proxy y arranque
 COPY Caddyfile ./Caddyfile
@@ -92,6 +106,6 @@ RUN chmod +x ./docker-entrypoint.sh
 
 # Puertos de cada servicio (accesibles si se publican con `-p`/compose) + el del
 # proxy Caddy (modo Render, un único puerto).
-EXPOSE 8010 8011 8012 8013 8014 10000
+EXPOSE 8010 8011 8012 8013 8014 8015 10000
 
 CMD ["./docker-entrypoint.sh"]

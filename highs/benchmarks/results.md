@@ -7,7 +7,7 @@
 
 | Campo | Valor |
 |---|---|
-| Fecha (UTC) | 2026-10-14T18:32:58+00:00 |
+| Fecha (UTC) | 2026-10-14T20:44:06+00:00 |
 | Sistema | Windows-11-10.0.26300-SP0 |
 | Máquina | AMD64 |
 | Procesador | AMD64 Family 23 Model 24 Stepping 1, AuthenticAMD |
@@ -21,9 +21,9 @@
 
 | Caso | Repeticiones | Mejor wall (ms) | Mediana wall (ms) | solve_time_ms (motor) | Estado | Objetivo |
 |---|---:|---:|---:|---:|---|---:|
-| LP 100x50 | 3 | 7.00 | 14.95 | 11.28 | optimal | 156.19 |
-| MIP 50 binarias | 3 | 59.90 | 80.17 | 87.65 | optimal | 913 |
-| QP 100 variables | 3 | 17.52 | 18.49 | 6.42 | optimal | -1.41833 |
+| LP 100x50 | 3 | 4.86 | 5.18 | 2.50 | optimal | 156.19 |
+| MIP 50 binarias | 3 | 42.54 | 48.03 | 45.94 | optimal | 913 |
+| QP 100 variables | 3 | 13.93 | 16.72 | 5.70 | optimal | -1.41833 |
 
 Notas:
 

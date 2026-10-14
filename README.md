@@ -13,6 +13,7 @@ de Mercaldas (plataforma de datos → estos servicios → campañas).
 | `uplift-api` | 8012 | Uplift con econml (DR-learner, causal forest, X/T): Qini/AUUC |
 | `transformerApi` | 8013 | iTransformer: pronóstico de series temporales (PyTorch) |
 | `causalTransformer-api` | 8014 | Causal Transformer (ICML'22): contrafactuales temporales (PyTorch) |
+| `highs` | 8015 | Optimización: LP, MIP y QP convexo sobre HiGHS (`/v1/{lp,mip,qp}/solve`) |
 | `core/` | — | Librería compartida (lector `.ADT`, limpieza, RFM) — no es un servicio |
 
 > **`linear-regression` NO está en el despliegue**: es un proyecto de curso
@@ -25,11 +26,12 @@ Un solo lanzador con **selección por parámetros** (segundo plano, logs en
 `logs/*.log`):
 
 ```bash
-node dev.js                        # los 5 servicios
+node dev.js                        # los 6 servicios
 node dev.js --analytics            # solo lo que consume el ecommerce/analytics:
                                    #   clustering (8010) + xgboost (8011) + uplift (8012)
 node dev.js --clustering --uplift  # servicios concretos (combinables)
 node dev.js --transformer --causal # los pesados (PyTorch)
+node dev.js --highs                # optimización LP/MIP/QP (8015)
 node dev.js --prod                 # producción (sin --reload)
 node dev.js --stop [flags]         # detiene (todos, o solo los seleccionados)
 node dev.js --help
@@ -54,7 +56,8 @@ Astaroth/<dominio>/
 ├── /xgboost/*      → xgboost-api          :8011
 ├── /uplift/*       → uplift-api           :8012
 ├── /transformer/*  → transformerApi       :8013
-└── /causal/*       → causalTransformer-api :8014
+├── /causal/*       → causalTransformer-api :8014
+└── /highs/*        → highs (LP/MIP/QP)    :8015
 ```
 
 1. Sube el repo a GitHub.
@@ -87,16 +90,19 @@ docker compose up --build
 # uplift      → http://localhost:8012/docs
 # transformer → http://localhost:8013/docs   (PyTorch)
 # causal      → http://localhost:8014/docs   (PyTorch)
+# highs       → http://localhost:8015/docs   (LP/MIP/QP)
 ```
 
 Comportamiento por variable de entorno (también en `docker-compose.yml` o un
 `.env`):
 
 - `ASTROTH_HOST` — host de escucha de los uvicorn (defecto `0.0.0.0`).
-- `ASTROTH_FULL` — `1` (defecto) arranca los 5; `0` solo el trío ligero.
+- `ASTROTH_FULL` — `1` (defecto) arranca los 6; `0` solo el trío ligero + highs.
 - `ASTROTH_PROXY` — `1` arranca Caddy por prefijo en `$PORT`; `0` (defecto en
   compose) expone solo los puertos directos.
 - `ADMIN_KEY` y `DATABASE_URL` — igual que en Render.
+- `HIGHS_*` — límites del motor de optimización (ver `highs/.env.example`);
+  los efectivos se publican en `GET /v1/capabilities`.
 
 Los `uvicorn` escuchan en todas las interfaces, así que **todos** los puertos
 (no solo los publicados) son alcanzables; para publicar solo algunos, edita la

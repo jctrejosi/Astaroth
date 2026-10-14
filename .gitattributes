@@ -1,0 +1,7 @@
+# Line endings estables entre Windows/Linux (el entrypoint corre en contenedor).
+*.sh text eol=lf
+
+# Los lanzadores y configs de despliegue se mantienen tal cual.
+*.js text
+Dockerfile text
+Caddyfile text

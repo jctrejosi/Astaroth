@@ -1,0 +1,13 @@
+{
+  "objective": {
+    "sense": "minimize",
+    "coefficients": [8, 6, 10, 9, 12, 7]
+  },
+  "constraints": [
+    { "coefficients": [1, 1, 1, 0, 0, 0], "sense": "=", "rhs": 30 },
+    { "coefficients": [0, 0, 0, 1, 1, 1], "sense": "=", "rhs": 40 },
+    { "coefficients": [1, 0, 0, 1, 0, 0], "sense": "=", "rhs": 20 },
+    { "coefficients": [0, 1, 0, 0, 1, 0], "sense": "=", "rhs": 25 },
+    { "coefficients": [0, 0, 1, 0, 0, 1], "sense": "=", "rhs": 25 }
+  ]
+}

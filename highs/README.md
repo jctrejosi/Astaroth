@@ -37,9 +37,9 @@ usan un esquema JSON único (ver [docs/architecture.md](docs/architecture.md)).
 
 ## Versiones
 
-- Python 3.12 en desarrollo, CI e imagen Docker (misma versión menor, como
-  exige la especificación). `requires-python` admite ≥ 3.11, pero el lockfile
-  fija `numpy 2.5`, que requiere 3.12.
+- Desarrollo local en Python 3.12; las imágenes Docker (la propia de `highs/` y
+  la del monorepo Astaroth) usan **Python 3.11**, la misma versión menor que el
+  resto del monorepo. El lockfile es compatible con 3.11+.
 - `highspy==1.15.1` (versión fijada y probada; ver `requirements.lock`).
 - FastAPI + Pydantic v2; uvicorn; NumPy para validar la matriz `Q`.
 
@@ -110,7 +110,7 @@ docker compose down
 
 La imagen instala `requirements.lock` y el paquete sin dependencias de
 desarrollo. El contenedor incluye healthcheck sobre `/health`. Tamaño medido
-con `docker images`: **327 MB** (objetivo práctico < 500 MB).
+con `docker images`: **342 MB** (objetivo práctico < 500 MB).
 
 ## Seguridad y despliegue
 

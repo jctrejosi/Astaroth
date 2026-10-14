@@ -8,13 +8,14 @@
 #   uplift       → http://localhost:8012/docs
 #   transformer  → http://localhost:8013/docs   (PyTorch ↓ RAM)
 #   causal       → http://localhost:8014/docs   (PyTorch ↓ RAM)
+#   highs        → http://localhost:8015/docs   (optimización LP/MIP/QP)
 #
 # Variables (define un `.env` junto a este archivo, o expórtalas):
 #   ADMIN_KEY     clave de los /admin/* y /segment-clients (defecto: change-me)
 #   DATABASE_URL  réplica de analytics (Postgres) que lee clustering-api; sin
 #                 ella, los endpoints que consultan clientes (RFM) dan 503.
 #
-# Solo el trío ligero (clustering+xgboost+uplift): pon ASTROTH_FULL: "0".
+# Solo el trío ligero (+ highs): pon ASTROTH_FULL: "0".
 # Los dos PyTorch consumen ~2 GB de RAM cada uno.
 
 services:
@@ -40,6 +41,7 @@ services:
       - "8012:8012"   # uplift-api
       - "8013:8013"   # transformerApi     (PyTorch)
       - "8014:8014"   # causalTransformer-api (PyTorch)
+      - "8015:8015"   # highs (LP/MIP/QP, HiGHS)
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8010/health || exit 1"]
       interval: 30s

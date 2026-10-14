@@ -5,7 +5,8 @@
 #   3. uplift-api           → ${ASTROTH_HOST}:8012
 #   4. transformerApi       → ${ASTROTH_HOST}:8013 (PyTorch) — con ASTROTH_FULL=1
 #   5. causalTransformer-api → ${ASTROTH_HOST}:8014 (PyTorch) — con ASTROTH_FULL=1
-#   6. Caddy (proxy)        → $PORT (público) — con ASTROTH_PROXY=1
+#   6. highs (LP/MIP/QP)    → ${ASTROTH_HOST}:8015 (ligero, siempre activo)
+#   7. Caddy (proxy)        → $PORT (público) — con ASTROTH_PROXY=1
 #
 # Variables:
 #   ASTROTH_HOST   host de escucha de los uvicorn (por defecto 0.0.0.0, para que
@@ -20,7 +21,7 @@ HOST="${ASTROTH_HOST:-0.0.0.0}"
 PUBLIC_PORT="${PORT:-10000}"
 PROXY="${ASTROTH_PROXY:-1}"
 
-echo "==> Astaroth: uvicorn en ${HOST}:8010/8011/8012${ASTROTH_FULL:+ (+8013/8014)}  · proxy=${PROXY}"
+echo "==> Astaroth: uvicorn en ${HOST}:8010/8011/8012/8015${ASTROTH_FULL:+ (+8013/8014)}  · proxy=${PROXY}"
 
 start() {
   local name="$1" dir="$2" venv="$3" entry="$4" port="$5"
@@ -32,6 +33,7 @@ start() {
 start clustering-api        clustering-api        clustering-venv app.main:app     8010
 start xgboost-api           xgboost-api           xgboost-venv    app.main:app     8011
 start uplift-api            uplift-api            uplift-venv     app.main:app     8012
+start highs                 highs                 highs-venv      highs_api.main:app 8015
 
 if [[ "${ASTROTH_FULL:-0}" == "1" ]]; then
   start transformerApi         transformerApi         transformer-venv apis.main:app 8013

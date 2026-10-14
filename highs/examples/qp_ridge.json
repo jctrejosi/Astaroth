@@ -1,0 +1,14 @@
+{
+  "objective": {
+    "sense": "minimize",
+    "coefficients": [-44, -56]
+  },
+  "Q": [
+    [71, 88],
+    [88, 113]
+  ],
+  "bounds": [
+    { "lower": null, "upper": null },
+    { "lower": null, "upper": null }
+  ]
+}

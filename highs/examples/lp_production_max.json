@@ -1,0 +1,14 @@
+{
+  "objective": {
+    "sense": "maximize",
+    "coefficients": [40, 30]
+  },
+  "constraints": [
+    { "coefficients": [2, 1], "sense": "<=", "rhs": 100 },
+    { "coefficients": [1, 1], "sense": "<=", "rhs": 80 }
+  ],
+  "bounds": [
+    { "lower": 0, "upper": 40 },
+    { "lower": 0, "upper": null }
+  ]
+}

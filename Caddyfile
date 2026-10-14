@@ -5,6 +5,7 @@
 # - /uplift/*     → uplift-api           (127.0.0.1:8012)
 # - /transformer/*→ transformerApi       (127.0.0.1:8013)
 # - /causal/*     → causalTransformer-api (127.0.0.1:8014)
+# - /highs/*      → highs (LP/MIP/QP)     (127.0.0.1:8015)
 # handle_path quita el prefijo antes de reenviar.
 
 :{$HTTP_PORT} {
@@ -30,7 +31,11 @@
 		reverse_proxy 127.0.0.1:8014
 	}
 
+	handle_path /highs/* {
+		reverse_proxy 127.0.0.1:8015
+	}
+
 	handle {
-		respond "Astaroth ML API — /clustering, /xgboost, /uplift, /transformer, /causal" 200
+		respond "Astaroth ML API — /clustering, /xgboost, /uplift, /transformer, /causal, /highs" 200
 	}
 }

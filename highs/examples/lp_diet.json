@@ -1,0 +1,10 @@
+{
+  "objective": {
+    "sense": "minimize",
+    "coefficients": [2, 1]
+  },
+  "constraints": [
+    { "coefficients": [2, 1], "sense": ">=", "rhs": 10 },
+    { "coefficients": [1, 3], "sense": ">=", "rhs": 15 }
+  ]
+}

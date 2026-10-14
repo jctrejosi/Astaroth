@@ -1,7 +1,7 @@
-# La imagen usa la misma versión menor de Python que el entorno de desarrollo/CI
-# (3.12), como exige la especificación; python:3.11-slim no satisface el pin
-# de numpy del lockfile.
-FROM python:3.12-slim
+# Python 3.11: misma versión menor que el contenedor del monorepo (el venv
+# construido aquí se copia tal cual a la etapa runtime). El lockfile es
+# compatible con 3.11+ (el entorno de desarrollo local usa 3.12).
+FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1

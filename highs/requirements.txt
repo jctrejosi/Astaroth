@@ -1,0 +1,4 @@
+# Instalación de desarrollo (la usan el launcher dev.js y el flujo manual).
+# Runtime fijado (requirements.lock) + el paquete en modo editable.
+-r requirements.lock
+-e .

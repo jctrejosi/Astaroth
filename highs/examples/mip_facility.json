@@ -1,0 +1,22 @@
+{
+  "objective": {
+    "sense": "minimize",
+    "coefficients": [100, 120, 5, 4, 6, 3, 5, 4]
+  },
+  "constraints": [
+    { "coefficients": [0, 0, 1, 0, 0, 1, 0, 0], "sense": "=", "rhs": 10 },
+    { "coefficients": [0, 0, 0, 1, 0, 0, 1, 0], "sense": "=", "rhs": 10 },
+    { "coefficients": [0, 0, 0, 0, 1, 0, 0, 1], "sense": "=", "rhs": 10 },
+    { "coefficients": [-10, 0, 1, 0, 0, 0, 0, 0], "sense": "<=", "rhs": 0 },
+    { "coefficients": [-10, 0, 0, 1, 0, 0, 0, 0], "sense": "<=", "rhs": 0 },
+    { "coefficients": [-10, 0, 0, 0, 1, 0, 0, 0], "sense": "<=", "rhs": 0 },
+    { "coefficients": [0, -10, 0, 0, 0, 1, 0, 0], "sense": "<=", "rhs": 0 },
+    { "coefficients": [0, -10, 0, 0, 0, 0, 1, 0], "sense": "<=", "rhs": 0 },
+    { "coefficients": [0, -10, 0, 0, 0, 0, 0, 1], "sense": "<=", "rhs": 0 }
+  ],
+  "integrality": [
+    "binary", "binary",
+    "continuous", "continuous", "continuous",
+    "continuous", "continuous", "continuous"
+  ]
+}

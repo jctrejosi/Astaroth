@@ -1,18 +1,19 @@
-# Astaroth — tres servicios independientes (un proceso Python por contenedor).
+# Astaroth — servicios independientes (un proceso Python por contenedor).
 #
 # Cada servicio cabe holgado en plan starter (512 MB): usa ~180 MB.
 # Los modelos entrenados viajan en la imagen (saved_models están trackeados).
 #
 # Cómo desplegar:
 #   A) Blueprint: si este repo está conectado a Render como Blueprint, al
-#      pushear crea los 3 servicios con estos ajustes (completa los valores
+#      pushear crea los servicios con estos ajustes (completa los valores
 #      de ADMIN_KEY y DATABASE_URL en el dashboard).
-#   B) Manual: crea 3 Web Services en Render con cada Dockerfile (abajo) y
+#   B) Manual: crea un Web Service en Render con cada Dockerfile (abajo) y
 #      estos mismos envs/healthCheck.
 #
 # URLs resultantes (ejemplo): https://astaroth-clustering.onrender.com
 #                            https://astaroth-xgboost.onrender.com
 #                            https://astaroth-uplift.onrender.com
+#                            https://astaroth-highs.onrender.com
 # Luego, en el backend de mercaldas (Render) apunta:
 #   CLUSTERING_API_URL=https://astaroth-clustering.onrender.com
 #   XGBOOST_API_URL=https://astaroth-xgboost.onrender.com
@@ -56,3 +57,14 @@ services:
     envVars:
       - key: ADMIN_KEY
         sync: false
+
+  # Optimización LP/MIP/QP (HiGHS). Sin modelos ni variables secretas: no
+  # necesita envs. También viaja en el contenedor único del Dockerfile raíz
+  # (:8015 y ruta /highs/* vía Caddy).
+  - type: web
+    name: astaroth-highs
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./highs/Dockerfile
+    dockerContext: ./highs
+    healthCheckPath: /health

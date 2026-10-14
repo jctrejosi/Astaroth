@@ -4,9 +4,17 @@ logs/
 **/__pycache__/
 **/*.pyc
 **/.venv/
+**/.mypy_cache/
+**/.ruff_cache/
+**/.pytest_cache/
+**/.coverage
 **/saved_models/*
 !**/saved_models/.gitkeep
 **/.env
+highs/tests/
+highs/docs/
+highs/benchmarks/
+highs/examples/
 dev.js
 render.yaml
 README.md

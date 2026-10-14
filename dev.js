@@ -44,13 +44,15 @@ const LEGACY_PIDS_FILES = [
 
 // ── Catálogo de servicios ───────────────────────────────────
 // `group: "analytics"` = lo que consume la plataforma mercaldas-ecommerce
-// (segmentación + propensión + uplift). El resto son los pesados (PyTorch).
+// (segmentación + propensión + uplift). `heavy: true` = PyTorch (RAM alta).
+// `highs` (optimización LP/MIP/QP) es ligero y no pertenece al grupo analytics.
 const SERVICES = [
   { name: "clustering", dir: "clustering-api", port: 8010, entry: "app.main:app", group: "analytics" },
   { name: "xgboost", dir: "XGBoost-api", port: 8011, entry: "app.main:app", group: "analytics" },
   { name: "uplift", dir: "uplift-api", port: 8012, entry: "app.main:app", group: "analytics" },
-  { name: "transformer", dir: "transformerApi", port: 8013, entry: "apis.main:app" },
-  { name: "causal", dir: "causalTransformer-api", port: 8014, entry: "api.main:app" },
+  { name: "transformer", dir: "transformerApi", port: 8013, entry: "apis.main:app", heavy: true },
+  { name: "causal", dir: "causalTransformer-api", port: 8014, entry: "api.main:app", heavy: true },
+  { name: "highs", dir: "highs", port: 8015, entry: "highs_api.main:app" },
 ];
 
 const SERVICE_NAMES = new Set(SERVICES.map((s) => s.name));
@@ -384,14 +386,15 @@ function printHelp() {
   out.push("USO");
   out.push("  node dev.js [flags]");
   out.push("");
-  out.push("SELECCIÓN (sin flags levanta los 5)");
+  out.push("SELECCIÓN (sin flags levanta los 6)");
   out.push("  --analytics        solo lo del ecommerce/analytics: clustering + xgboost + uplift");
   out.push("  --clustering       solo clustering-api        :8010");
   out.push("  --xgboost          solo XGBoost-api           :8011");
   out.push("  --uplift           solo uplift-api            :8012");
   out.push("  --transformer      solo transformerApi        :8013  (PyTorch, pesado)");
   out.push("  --causal           solo causalTransformer-api :8014  (PyTorch, pesado)");
-  out.push("  --all              los 5 (explícito)");
+  out.push("  --highs            solo highs (LP/MIP/QP)     :8015");
+  out.push("  --all              los 6 (explícito)");
   out.push("");
   out.push("MODOS");
   out.push("  --prod / --live    producción (uvicorn sin --reload)");
@@ -399,9 +402,10 @@ function printHelp() {
   out.push("  --help             esta ayuda");
   out.push("");
   out.push("EJEMPLOS");
-  out.push("  node dev.js                       → los 5 servicios");
+  out.push("  node dev.js                       → los 6 servicios");
   out.push("  node dev.js --analytics           → clustering + xgboost + uplift (analytics)");
   out.push("  node dev.js --xgboost --uplift    → solo esos dos");
+  out.push("  node dev.js --highs               → optimización LP/MIP/QP (:8015)");
   out.push("  node dev.js --stop --analytics    → detiene solo el set de analytics");
   out.push("");
   out.push("Logs: logs/<servicio>.log · PIDs: logs/.pids.json");
@@ -412,13 +416,13 @@ function printHelp() {
 /** Resumen final tras levantar: todas las formas de invocar el lanzador. */
 function printCommands() {
   const rows = [
-    ["node dev.js", "los 5 servicios"],
+    ["node dev.js", "los 6 servicios"],
     ["node dev.js --analytics", "clustering + xgboost + uplift (lo que usa el ecommerce)"],
     ...SERVICES.map((svc) => [
       `node dev.js --${svc.name}`,
-      `solo ${svc.dir} :${svc.port}${svc.group ? "" : " — PyTorch, pesado"}`,
+      `solo ${svc.dir} :${svc.port}${svc.heavy ? " — PyTorch, pesado" : ""}`,
     ]),
-    ["node dev.js --all", "los 5 (explícito)"],
+    ["node dev.js --all", "los 6 (explícito)"],
     ["node dev.js --prod", "producción (uvicorn sin --reload)"],
     ["node dev.js --stop [flags]", "detiene (todos, o solo los seleccionados)"],
     ["node dev.js --help", "esta ayuda"],
@@ -434,6 +438,7 @@ const C = {
   uplift: "\x1b[33m",
   transformer: "\x1b[95m",
   causal: "\x1b[91m",
+  highs: "\x1b[34m",
   reset: "\x1b[0m",
 };
 

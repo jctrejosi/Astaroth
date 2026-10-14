@@ -1,0 +1,20 @@
+# Desarrollo: el puerto se publica solo en localhost. Exponer el servicio a
+# otros hosts es una decisión explícita de despliegue (firewall, red privada o
+# reverse proxy): esta API no incluye autenticación en v1.
+services:
+  highs-api:
+    build: .
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      HIGHS_LOG_LEVEL: info
+      HIGHS_DEFAULT_TIME_LIMIT: "30"
+      HIGHS_DEFAULT_THREADS: "0"
+      HIGHS_MAX_THREADS: "8"
+    restart: unless-stopped
+    healthcheck:
+      test:
+        ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

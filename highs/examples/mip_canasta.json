@@ -1,0 +1,14 @@
+{
+  "objective": {
+    "sense": "minimize",
+    "coefficients": [12000, 18000, 4000, 3000, 5000, 4500]
+  },
+  "constraints": [
+    { "coefficients": [1, 1, 0, 0, 0, 0], "sense": ">=", "rhs": 5 },
+    { "coefficients": [0, 0, 1, 1, 0, 0], "sense": ">=", "rhs": 4 },
+    { "coefficients": [0, 0, 0, 0, 1, 0], "sense": ">=", "rhs": 6 },
+    { "coefficients": [0, 0, 0, 0, 0, 1], "sense": ">=", "rhs": 3 }
+  ],
+  "integrality": ["integer", "integer", "integer", "integer", "integer", "integer"],
+  "options": { "time_limit": 30 }
+}

@@ -1,0 +1,14 @@
+{
+  "objective": {
+    "sense": "maximize",
+    "coefficients": [60, 100, 120]
+  },
+  "constraints": [
+    { "coefficients": [10, 20, 30], "sense": "<=", "rhs": 50 }
+  ],
+  "integrality": ["binary", "binary", "binary"],
+  "options": {
+    "time_limit": 30,
+    "mip_rel_gap": 0
+  }
+}

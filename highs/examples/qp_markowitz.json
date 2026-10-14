@@ -1,0 +1,24 @@
+{
+  "objective": {
+    "sense": "minimize",
+    "coefficients": [0, 0, 0]
+  },
+  "Q": [
+    [0.04, 0.01, 0.00],
+    [0.01, 0.09, 0.02],
+    [0.00, 0.02, 0.16]
+  ],
+  "constraints": [
+    { "coefficients": [1, 1, 1], "sense": "=", "rhs": 1 },
+    { "coefficients": [0.08, 0.12, 0.15], "sense": ">=", "rhs": 0.10 }
+  ],
+  "bounds": [
+    { "lower": 0, "upper": 1 },
+    { "lower": 0, "upper": 1 },
+    { "lower": 0, "upper": 1 }
+  ],
+  "options": {
+    "time_limit": 30,
+    "solver": "qpasm"
+  }
+}

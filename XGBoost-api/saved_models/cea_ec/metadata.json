@@ -1,5 +1,5 @@
 {
-    "model_name": "cea:ec",
+    "model_name": "cea_ec",
     "target_column": "ec",
     "trained_at": "2026-09-30T23:15:44.871734",
     "records": 97,

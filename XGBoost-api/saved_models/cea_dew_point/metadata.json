@@ -1,5 +1,5 @@
 {
-    "model_name": "cea:dew_point",
+    "model_name": "cea_dew_point",
     "target_column": "dew_point",
     "trained_at": "2026-09-30T23:15:48.471028",
     "records": 97,

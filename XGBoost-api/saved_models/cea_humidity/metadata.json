@@ -1,5 +1,5 @@
 {
-    "model_name": "cea:humidity",
+    "model_name": "cea_humidity",
     "target_column": "humidity",
     "trained_at": "2026-09-30T23:15:39.461580",
     "records": 97,

@@ -1,5 +1,5 @@
 {
-    "model_name": "cea:par",
+    "model_name": "cea_par",
     "target_column": "par",
     "trained_at": "2026-09-30T23:15:53.371479",
     "records": 97,

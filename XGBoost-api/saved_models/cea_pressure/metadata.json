@@ -1,5 +1,5 @@
 {
-    "model_name": "cea:pressure",
+    "model_name": "cea_pressure",
     "target_column": "pressure",
     "trained_at": "2026-09-30T23:15:41.343372",
     "records": 97,

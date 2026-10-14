@@ -1,5 +1,5 @@
 {
-    "model_name": "cea:co2",
+    "model_name": "cea_co2",
     "target_column": "co2",
     "trained_at": "2026-09-30T23:15:43.115507",
     "records": 97,

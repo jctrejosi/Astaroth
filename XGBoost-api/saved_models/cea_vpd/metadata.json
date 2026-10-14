@@ -1,5 +1,5 @@
 {
-    "model_name": "cea:vpd",
+    "model_name": "cea_vpd",
     "target_column": "vpd",
     "trained_at": "2026-09-30T23:15:45.964826",
     "records": 97,

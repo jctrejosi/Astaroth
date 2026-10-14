@@ -1,5 +1,5 @@
 {
-    "model_name": "cea:ec_compensated",
+    "model_name": "cea_ec_compensated",
     "target_column": "ec_compensated",
     "trained_at": "2026-09-30T23:15:54.669533",
     "records": 97,

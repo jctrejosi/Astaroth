@@ -1,0 +1,52 @@
+# Caddyfile — modo EDGE COMPARTIDO (TLS=false, el recomendado en el servidor).
+#
+# El edge (ecommerce/docker/edge/) publica 80/443, termina el TLS y reenvía a
+# este contenedor (`mercaldas_astaroth_app:8080`) conservando el Host. Aquí se
+# sirve HTTP plano para cualquier Host, ruteando por prefijo a cada servicio.
+#
+# Placeholders de entorno (los fija docker/entrypoint.sh):
+#   HTTP_PORT          puerto HTTP interno (def. 8080)
+#   MAX_REQUEST_BODY   tamaño máximo de cuerpo (def. 100MB; 0 ⇒ sin límite)
+{
+	admin off
+	auto_https off
+}
+
+:{$HTTP_PORT} {
+	header {
+		X-Content-Type-Options "nosniff"
+		-Server
+	}
+
+	# Los endpoints de ML reciben datasets JSON: se acota el cuerpo.
+	request_body {
+		max_size {$MAX_REQUEST_BODY}
+	}
+
+	encode zstd gzip
+
+	# handle_path quita el prefijo antes de reenviar.
+	handle_path /clustering/* {
+		reverse_proxy 127.0.0.1:8010
+	}
+
+	handle_path /xgboost/* {
+		reverse_proxy 127.0.0.1:8011
+	}
+
+	handle_path /uplift/* {
+		reverse_proxy 127.0.0.1:8012
+	}
+
+	handle_path /transformer/* {
+		reverse_proxy 127.0.0.1:8013
+	}
+
+	handle_path /causal/* {
+		reverse_proxy 127.0.0.1:8014
+	}
+
+	handle {
+		respond "Astaroth ML API — /clustering · /xgboost · /uplift · /transformer · /causal" 200
+	}
+}

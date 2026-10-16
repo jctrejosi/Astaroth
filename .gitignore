@@ -1,3 +1,5 @@
 # Logs de los servicios locales (dev.js)
 logs/
 transformerApi/saved_models/
+# Entorno del despliegue en contenedor (docker/)
+docker/.env

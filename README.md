@@ -44,6 +44,24 @@ a usar (o usar `--analytics` para evitarlos).
 
 Docs de cada API en `http://localhost:{puerto}/docs`.
 
+## Despliegue en el VPS (contenedor único)
+
+`docker/` trae el contenedor para el servidor: los 5 servicios + Caddy interno,
+publicado solo en loopback (`127.0.0.1:30380/30381`). El **edge compartido** de
+Mercaldas (`ecommerce/docker/edge/`) es el único que publica `80/443` y hace TLS.
+El CRM lo consume por la red `shared_edge`.
+
+```bash
+cp docker/.env.example docker/.env
+node scripts-agent/set-prod-secrets.mjs   # ADMIN_KEY (fail-closed)
+node prod.js                              # sincroniza .env, construye y levanta
+node prod.js --dns                        # qué configurar en DNS/red
+```
+
+- `docs/DESPLIEGUE-DOCKER.md` — pasos del servidor (Windows/VPS), firewall, DNS y verificación.
+- `docs/SECURITY.md` — modelo de seguridad (exposición, ADMIN_KEY, aislamiento).
+- `docker/README.md` — modos (`edge`/`direct`) y variantes (`lite`/`full` con PyTorch).
+
 ## Despliegue en Render
 
 Un solo servicio web (Docker) con Caddy ruteando por prefijo:

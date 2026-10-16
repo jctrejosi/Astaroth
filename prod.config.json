@@ -1,0 +1,18 @@
+{
+  "mode": "edge",
+  "baseDomain": "mercaldas.jcti.xyz",
+  "publicIp": "170.254.229.68",
+  "dnsZone": "jcti.xyz",
+  "acmeEmail": "admin@jcti.xyz",
+  "tls": true,
+  "hosts": {
+    "ml": "ml.mercaldas.jcti.xyz"
+  },
+  "withPyTorch": false,
+  "publicHttpPort": 80,
+  "publicHttpsPort": 443,
+  "edgePorts": {
+    "http": "127.0.0.1:30380",
+    "https": "127.0.0.1:30381"
+  }
+}

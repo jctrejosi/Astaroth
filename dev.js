@@ -49,12 +49,20 @@ const SERVICES = [
 ];
 
 const SERVICE_NAMES = new Set(SERVICES.map((s) => s.name));
-const GROUP_ALIASES = { analytics: "analytics" };
+
+// Agrupaciones por caso de uso (un servicio puede estar en varias):
+//   analytics → plataforma mercaldas-ecommerce (segmentación + propensión + uplift).
+//   tesis     → proyecto de tesis (cultivo automatizado): baselines + world model.
+const GROUPS = {
+  analytics: ["clustering", "xgboost", "uplift"],
+  tesis: ["xgboost", "transformer", "causal"],
+};
 
 /**
  * Servicios elegidos por los flags. `null` ⇒ todos (sin flags de selección).
  *   --all / sin flags       → los 5
  *   --analytics             → grupo analytics (clustering + xgboost + uplift)
+ *   --tesis                 → grupo tesis (xgboost + transformer + causal)
  *   --clustering --uplift   → servicios concretos (combinables)
  * Los flags de modo (--prod, --stop, --help, ...) y desconocidos se ignoran aquí.
  */
@@ -66,8 +74,8 @@ function selectServices(argv) {
     if (f === "all") {
       SERVICES.forEach((s) => chosen.add(s.name));
       any = true;
-    } else if (GROUP_ALIASES[f]) {
-      SERVICES.filter((s) => s.group === GROUP_ALIASES[f]).forEach((s) => chosen.add(s.name));
+    } else if (GROUPS[f]) {
+      GROUPS[f].forEach((name) => chosen.add(name));
       any = true;
     } else if (SERVICE_NAMES.has(f)) {
       chosen.add(f);
@@ -83,7 +91,7 @@ const VALID_FLAGS = new Set([
   "--stop",
   "--help",
   "--all",
-  "--analytics",
+  ...Object.keys(GROUPS).map((g) => `--${g}`),
   ...SERVICES.map((s) => `--${s.name}`),
 ]);
 
@@ -381,6 +389,7 @@ function printHelp() {
   out.push("");
   out.push("SELECCIÓN (sin flags levanta los 5)");
   out.push("  --analytics        solo lo del ecommerce/analytics: clustering + xgboost + uplift");
+  out.push("  --tesis            solo lo del proyecto de tesis: xgboost + transformer + causal");
   out.push("  --clustering       solo clustering-api        :8010");
   out.push("  --xgboost          solo XGBoost-api           :8011");
   out.push("  --uplift           solo uplift-api            :8012");
@@ -396,6 +405,7 @@ function printHelp() {
   out.push("EJEMPLOS");
   out.push("  node dev.js                       → los 5 servicios");
   out.push("  node dev.js --analytics           → clustering + xgboost + uplift (analytics)");
+  out.push("  node dev.js --tesis               → xgboost + transformer + causal (tesis)");
   out.push("  node dev.js --xgboost --uplift    → solo esos dos");
   out.push("  node dev.js --stop --analytics    → detiene solo el set de analytics");
   out.push("");
@@ -409,6 +419,7 @@ function printCommands() {
   const rows = [
     ["node dev.js", "los 5 servicios"],
     ["node dev.js --analytics", "clustering + xgboost + uplift (lo que usa el ecommerce)"],
+    ["node dev.js --tesis", "xgboost + transformer + causal (lo que usa la tesis)"],
     ...SERVICES.map((svc) => [
       `node dev.js --${svc.name}`,
       `solo ${svc.dir} :${svc.port}${svc.group ? "" : " — PyTorch, pesado"}`,

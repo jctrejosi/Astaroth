@@ -1,0 +1,94 @@
+# Contenedor de APLICACIÓN de Astaroth (servicios ML + Caddy) — un solo contenedor.
+#
+# Solo se publican sus puertos PROPIOS y en loopback (30380/30381): el TLS y los
+# 80/443 los hace el EDGE COMPARTIDO (ecommerce/docker/edge/), que reenvía a
+# `mercaldas_astaroth_app:8080` por la red `shared_edge`. En modo directo
+# (servidor dedicado) el propio contenedor publica 80/443 y emite el TLS.
+#
+# Uso:
+#   cp docker/.env.example docker/.env   # dominio, variante y secretos
+#   node scripts-agent/set-prod-secrets.mjs   # genera ADMIN_KEY (fail-closed)
+#   node prod.js                          # sincroniza .env, construye y levanta
+#
+# Guía completa: docs/DESPLIEGUE-DOCKER.md · Seguridad: docs/SECURITY.md
+name: astaroth
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      # lite (defecto: clustering+xgboost+uplift) | full (+transformer +causal)
+      target: ${BUILD_TARGET:-lite}
+    image: astaroth/app:latest
+    # Nombre fijo: el CRM (`mercaldas_crm_app`) y el edge lo alcanzan por nombre
+    # en la red `shared_edge`.
+    container_name: mercaldas_astaroth_app
+    env_file:
+      - .env
+    environment:
+      # Puertos internos de Caddy (no root); el host publica los de abajo.
+      HTTP_PORT: "8080"
+      HTTPS_PORT: "8443"
+      # Límite de cuerpo HTTP (los /fit reciben datasets JSON). "0" ⇒ sin límite.
+      MAX_REQUEST_BODY: ${MAX_REQUEST_BODY:-100MB}
+      # Certificados/estado de Caddy → volúmenes (no se re-emiten en cada up).
+      XDG_DATA_HOME: /data
+      XDG_CONFIG_HOME: /config
+    # ── Puertos publicados en el host ──────────────────────────────────────
+    # Por defecto SOLO en loopback y en puertos propios (30380/30381), para no
+    # chocar con 80/443, 8080/8443 ni los puertos de ecommerce (30180) y CRM
+    # (30280). Los consumidores reales (CRM) van por la red `shared_edge`.
+    # Modo directo (servidor dedicado): PUBLIC_HTTP_PORT=80, PUBLIC_HTTPS_PORT=443
+    # y TLS=true (lo sincroniza prod.js desde prod.config.json).
+    ports:
+      - "${PUBLIC_HTTP_PORT:-127.0.0.1:30380}:8080"
+      - "${PUBLIC_HTTPS_PORT:-127.0.0.1:30381}:8443"
+    volumes:
+      # Modelos entrenados (model.joblib, centroids.json, metadata…): persisten.
+      - clustering_models:/app/clustering-api/saved_models
+      - xgboost_models:/app/xgboost-api/saved_models
+      - uplift_models:/app/uplift-api/saved_models
+      - transformer_models:/app/transformerApi/saved_models
+      - causal_models:/app/causalTransformer-api/saved_models
+    networks:
+      - edge        # salida a internet (descargas pip en build, ACME en directo)
+      - shared_edge # la usan el edge y el CRM para alcanzarlo por nombre
+    # Endurecimiento: sin capacidades extra y sin escalada de privilegios.
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/clustering/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 90s
+    # Evita que los logs llenen el disco.
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    restart: unless-stopped
+
+networks:
+  edge:
+    name: astaroth_edge
+  # Red que comparte con los otros proyectos (la crean ecommerce/CRM o este
+  # compose; el edge la declara externa).
+  shared_edge:
+    name: shared_edge
+
+volumes:
+  clustering_models:
+    name: astaroth_models_clustering
+  xgboost_models:
+    name: astaroth_models_xgboost
+  uplift_models:
+    name: astaroth_models_uplift
+  transformer_models:
+    name: astaroth_models_transformer
+  causal_models:
+    name: astaroth_models_causal

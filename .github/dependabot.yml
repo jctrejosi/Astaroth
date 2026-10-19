@@ -1,0 +1,57 @@
+# Actualizaciones automáticas de dependencias (GitHub Dependabot).
+# Revisión semanal; los PRs quedan sujetos a la suite de cada servicio.
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: /clustering-api
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: pip
+    directory: /XGBoost-api
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: pip
+    directory: /uplift-api
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: pip
+    directory: /transformerApi
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: pip
+    directory: /causalTransformer-api
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: pip
+    directory: /linear-regression/Code/Backend
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: pip
+    directory: /highs
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+
+  - package-ecosystem: docker
+    directory: /highs
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3

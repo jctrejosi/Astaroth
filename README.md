@@ -108,6 +108,17 @@ Los `uvicorn` escuchan en todas las interfaces, así que **todos** los puertos
 (no solo los publicados) son alcanzables; para publicar solo algunos, edita la
 sección `ports:` del compose.
 
+## Seguridad de dependencias
+
+Auditoría con `pip-audit` (OSV/PyPA) y actualización semanal con Dependabot
+(`.github/dependabot.yml`). Estado actual, cambios aplicados y política de
+actualización: [SECURITY.md](SECURITY.md).
+
+```bash
+python -m pip install pip-audit
+python -m pip_audit -r highs/requirements.lock   # repetir por cada manifiesto
+```
+
 ## Notas
 
 - Los modelos guardados (`saved_models/`) están gitignored y viven en el

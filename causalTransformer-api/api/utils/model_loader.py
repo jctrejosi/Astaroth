@@ -17,10 +17,34 @@ import importlib
 
 from api.config import MODELS_DIR, MODEL_CLASS_MAP, MLFLOW_TRACKING_URI
 
+# El upstream entrena/evalúa en double; el checkpoint y las entradas deben coincidir.
+torch.set_default_dtype(torch.double)
+
 logger = logging.getLogger(__name__)
 
 # Cache de modelos cargados
 _model_cache = {}
+
+
+def _load_kwargs(config, submodel: Optional[str] = None) -> dict:
+    """Argumentos que no viven en `args` pero el modelo necesita al cargar.
+
+    `CT.__init__` exige `autoregressive=True`; los encoders (CRN/RMSN/EDCT) no.
+    `has_vitals` se deduce de `dim_vitals`.
+    """
+    try:
+        dim_vitals = int(config.model.dim_vitals)
+    except Exception:  # noqa: BLE001 - configs antiguas/incompletas
+        dim_vitals = 0
+    try:
+        projection_horizon = int(config.dataset.projection_horizon)
+    except Exception:  # noqa: BLE001
+        projection_horizon = None
+    return {
+        "autoregressive": submodel != "encoder",
+        "has_vitals": dim_vitals > 0,
+        "projection_horizon": projection_horizon,
+    }
 
 
 def load_model_from_run(
@@ -135,7 +159,8 @@ def load_model_from_run(
             checkpoint_path=str(checkpoint_path),
             args=config,
             map_location=torch.device("cpu"),
-            strict=False
+            strict=False,
+            **_load_kwargs(config, submodel),
         )
         model.eval()
         
@@ -256,7 +281,8 @@ def load_model_from_path(
         checkpoint_path=str(checkpoint_path),
         args=config,
         map_location=torch.device("cpu"),
-        strict=False
+        strict=False,
+        **_load_kwargs(config, submodel),
     )
     model.eval()
     

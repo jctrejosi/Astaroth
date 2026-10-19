@@ -5,7 +5,9 @@ from fastapi import APIRouter, HTTPException
 from typing import Dict, Any, Optional, List
 from pydantic import BaseModel
 import numpy as np
+import yaml
 
+from api.config import RUNS_DIR
 from api.services.predictor import get_predictor
 
 router = APIRouter(prefix="/predict", tags=["prediction"])
@@ -94,3 +96,19 @@ async def predict_n_step(request: PredictNStepRequest):
 async def predict_health():
     """Health check para el servicio de predicción"""
     return {"status": "ok", "message": "Prediction service is running"}
+
+
+@router.get("/scaling/{run_id}")
+async def get_scaling(run_id: str):
+    """Parámetros de normalización del run.
+
+    El cliente los necesita para normalizar las **entradas** (la API solo
+    desnormaliza la salida con `output_means`/`output_stds`).
+    """
+    path = RUNS_DIR / run_id / "scaling_params.yaml"
+    if not path.exists():
+        raise HTTPException(
+            status_code=404, detail=f"scaling_params no encontrado para {run_id}"
+        )
+    with path.open() as fh:
+        return yaml.safe_load(fh)

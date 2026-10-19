@@ -128,7 +128,8 @@ instance/
 # ============================================================
 
 checkpoints/
-models/
+# Pesos/artefactos del servicio (no el código fuente vendorizado en src/models/)
+api/storage/models/
 weights/
 artifacts/
 runs/

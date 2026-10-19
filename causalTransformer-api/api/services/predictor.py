@@ -35,6 +35,11 @@ class Predictor:
         
         if local_path:
             model, config, scaling_params = load_model_from_path(local_path, model_type, submodel)
+        elif (RUNS_DIR / run_id).exists():
+            # Run local entrenada por runnables/train_tesis.py (sin MLflow).
+            model, config, scaling_params = load_model_from_path(
+                RUNS_DIR / run_id, model_type, submodel
+            )
         else:
             model, config, scaling_params = load_model_from_run(run_id, model_type, submodel)
         
@@ -63,7 +68,10 @@ class Predictor:
             self.outcome_extractor = lambda out: out[1] if isinstance(out, tuple) else out
         
         # Determinar qué método usar para predicciones
-        if hasattr(self.model, "get_predictions") and model_type != "msm":
+        # Nota: los modelos cargados desde disco no tienen `trainer`; `get_predictions`
+        # lo requiere, así que en ese caso usamos el forward directo.
+        has_trainer = getattr(self.model, "_trainer", None) is not None
+        if hasattr(self.model, "get_predictions") and model_type != "msm" and has_trainer:
             self.predict_method = self.model.get_predictions
         else:
             self.predict_method = self._predict_forward
@@ -76,9 +84,10 @@ class Predictor:
         loader = DataLoader(dataset, batch_size=32, shuffle=False)
         
         predictions = []
+        dtype = next(self.model.parameters()).dtype
         with torch.no_grad():
             for batch in loader:
-                batch = {k: v.to("cpu") for k, v in batch.items()}
+                batch = {k: v.to("cpu", dtype=dtype) for k, v in batch.items()}
                 outputs = self.model(batch)
                 if self.outcome_extractor is not None:
                     outcome_pred = self.outcome_extractor(outputs)
@@ -93,6 +102,8 @@ class Predictor:
         """
         Realiza predicciones sobre nuevos datos
         """
+        # El cliente HTTP envía listas JSON; el modelo espera arrays.
+        data = {k: np.asarray(v, dtype=np.float64) for k, v in data.items()}
         # Validar que los datos tienen la estructura correcta
         required_keys = ["prev_treatments", "current_treatments", "static_features"]
         if self.is_encoder_decoder:
@@ -159,6 +170,7 @@ class Predictor:
     
     def predict_n_step(self, data: Dict[str, Any], n_steps: int) -> np.ndarray:
         """Predicción multi-step"""
+        data = {k: np.asarray(v, dtype=np.float64) for k, v in data.items()}
         # Si el modelo tiene método get_autoregressive_predictions
         if hasattr(self.model, "get_autoregressive_predictions") and self.model_type != "msm":
             from torch.utils.data import Dataset

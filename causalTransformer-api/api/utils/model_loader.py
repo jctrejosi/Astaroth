@@ -160,6 +160,9 @@ def load_model_from_run(
             args=config,
             map_location=torch.device("cpu"),
             strict=False,
+            # torch >= 2.6 usa weights_only=True por defecto y los checkpoints
+            # de Lightning incluyen DictConfig/OmegaConf (no allowlisted).
+            weights_only=False,
             **_load_kwargs(config, submodel),
         )
         model.eval()
@@ -282,6 +285,9 @@ def load_model_from_path(
         args=config,
         map_location=torch.device("cpu"),
         strict=False,
+        # torch >= 2.6 usa weights_only=True por defecto y los checkpoints
+        # de Lightning incluyen DictConfig/OmegaConf (no allowlisted).
+        weights_only=False,
         **_load_kwargs(config, submodel),
     )
     model.eval()

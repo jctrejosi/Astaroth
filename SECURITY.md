@@ -4,6 +4,38 @@ Auditoría realizada el **14 de octubre de 2026** con `pip-audit` (base de datos
 OSV/PyPA) sobre todos los manifiestos Python del monorepo. Estado: **sin
 vulnerabilidades conocidas en ningún manifiesto**.
 
+## Reauditoría del 20 de octubre de 2026
+
+Se repitió la auditoría con `pip-audit` (OSV) sobre los manifiestos **y sobre
+los entornos `.venv` realmente instalados** de cada API. Resultado: **0 CVEs**
+conocidos.
+
+- `transformerApi/.venv` estaba desalineado del manifiesto (torch 2.10,
+  fastapi 0.129, starlette 0.52, pillow 12.1, etc.). Se reinstaló con los pins
+  actuales (`torch==2.13.0`, `fastapi==0.143.1`, `starlette==1.8.0`, …) y se
+  eliminaron los paquetes CUDA huérfanos del torch anterior.
+- `causalTransformer-api/.venv` también estaba desalineado (torch 2.7.1,
+  pytorch-lightning 2.5.3, mlflow 3.2.0, fastapi 0.116.1). Se actualizó al
+  manifiesto y se subió `setuptools` a 83.0.0.
+- `linear-regression/Code/Backend/Pipfile.lock` seguía con Flask 3.1.2,
+  Werkzeug 3.1.4, requests 2.32.5, urllib3 2.6.2, anyio 4.12.0, idna 3.11 y
+  python-dotenv 1.2.1. Se regeneró con `pipenv lock`: **0 CVEs**.
+- `clustering-api`, `XGBoost-api` y `uplift-api` no tenían CVEs ni en el
+  manifiesto ni en el entorno instalado.
+- Los entornos locales usan wheels **CPU** de PyTorch (`2.13.0+cpu`), misma
+  versión que el pin; las imágenes Docker siguen instalando desde PyPI.
+
+### Correcciones de compatibilidad detectadas al ejecutar los servicios
+
+- `causalTransformer-api/api/utils/model_loader.py`: torch ≥ 2.6 carga los
+  checkpoints con `weights_only=True`, pero los de Lightning incluyen
+  `omegaconf.DictConfig`. Se pasa `weights_only=False` (checkpoints locales de
+  confianza).
+- `causalTransformer-api/api/services/predictor.py`: el fallback de
+  `predict_n_step` exige un `Trainer` adjunto y `active_entries`; ahora usa la
+  predicción iterativa para modelos cargados desde disco y devuelve
+  `(batch, n_steps, features)`.
+
 ## Estado por proyecto
 
 | Manifiesto | Estado |

@@ -171,8 +171,13 @@ class Predictor:
     def predict_n_step(self, data: Dict[str, Any], n_steps: int) -> np.ndarray:
         """Predicción multi-step"""
         data = {k: np.asarray(v, dtype=np.float64) for k, v in data.items()}
-        # Si el modelo tiene método get_autoregressive_predictions
-        if hasattr(self.model, "get_autoregressive_predictions") and self.model_type != "msm":
+        # Mismo contrato que predict(): el cliente puede omitir active_entries.
+        if 'active_entries' not in data and 'prev_treatments' in data:
+            data['active_entries'] = np.ones(data['prev_treatments'].shape[:2] + (1,))
+        # get_autoregressive_predictions requiere un Trainer adjunto; para
+        # modelos cargados desde disco usamos el fallback iterativo.
+        has_trainer = getattr(self.model, "_trainer", None) is not None
+        if has_trainer and hasattr(self.model, "get_autoregressive_predictions") and self.model_type != "msm":
             from torch.utils.data import Dataset
             
             class TempAutoregDataset(Dataset):
@@ -214,7 +219,8 @@ class Predictor:
         current_data = data.copy()
         for step in range(n_steps):
             step_pred = self.predict(current_data)
-            predictions.append(step_pred)
+            # Solo el último timestep de cada ventana es la predicción del paso.
+            predictions.append(step_pred[:, -1, :])
             if 'prev_outputs' in current_data:
                 current_data['prev_outputs'] = np.roll(current_data['prev_outputs'], -1, axis=1)
                 current_data['prev_outputs'][:, -1:] = step_pred[:, -1:]

@@ -7,6 +7,7 @@ import logging
 from fastapi.responses import JSONResponse
 
 from api.routers import train, predict, evaluate
+from api.api_key_auth import APIKeyMiddleware
 from api.config import STORAGE_DIR
 
 # Configurar logging
@@ -26,6 +27,7 @@ app = FastAPI(
 )
 
 # Configurar CORS
+app.add_middleware(APIKeyMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # En producción, especificar orígenes permitidos

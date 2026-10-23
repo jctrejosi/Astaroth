@@ -1,3 +1,6 @@
 # Logs de los servicios locales (dev.js)
 logs/
 transformerApi/saved_models/
+
+# Secretos (ADMIN_KEY, API_KEYS, DATABASE_URL)
+.env

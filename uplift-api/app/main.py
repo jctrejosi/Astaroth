@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 
 from app.core.config import settings
+from app.core.api_key_auth import APIKeyMiddleware
 
 from app.routes.health import router as health_router
 from app.routes.train import router as train_router
@@ -14,6 +15,8 @@ app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
 )
+
+app.add_middleware(APIKeyMiddleware)
 
 app.include_router(health_router, tags=["Health"])
 app.include_router(train_router, tags=["Uplift"])

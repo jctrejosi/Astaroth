@@ -46,6 +46,10 @@ services:
       # Incluye transformer (8013) y causal (8014). "0" para solo el trío ligero.
       ASTROTH_FULL: "1"
       ADMIN_KEY: "${ADMIN_KEY:-change-me}"
+      # Autenticación por clave de API (todas las rutas salvo /health).
+      API_KEYS: "${API_KEYS:-}"
+      API_AUTH_REQUIRED: "${API_AUTH_REQUIRED:-1}"
+      API_PUBLIC_DOCS: "${API_PUBLIC_DOCS:-0}"
       DATABASE_URL: "${DATABASE_URL:-}"
     ports:
       - "${ASTAROTH_BIND_IP:-0.0.0.0}:${ASTAROTH_CLUSTERING_PORT:-8010}:8010"   # clustering-api

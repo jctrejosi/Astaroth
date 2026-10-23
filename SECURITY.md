@@ -146,3 +146,35 @@ python -m pip_audit -r highs/requirements.lock
 4. Los servicios sin lock (`clustering-api`, `XGBoost-api`, `uplift-api`)
    resuelven hoy a versiones limpias; para empaquetar Astaroth como librería
    instalable conviene fijarlas también (lock por servicio).
+
+## Autenticación de la API pública
+
+Los seis servicios (`clustering`, `xgboost`, `uplift`, `transformer`, `causal`
+y `highs`) exigen una clave de API en **todas** las rutas salvo `/health`.
+
+Se configura en el `.env` que acompaña a `docker-compose.yml`:
+
+```dotenv
+API_KEYS=clave1,clave2
+API_AUTH_REQUIRED=1
+API_PUBLIC_DOCS=0
+```
+
+El cliente la envía como `X-API-Key: <clave>` o `Authorization: Bearer <clave>`.
+Varias claves separadas por comas permiten revocar una sin afectar al resto;
+genéra cada una con `openssl rand -hex 32`.
+
+| Ajuste | Efecto |
+|---|---|
+| `API_AUTH_REQUIRED=0` | Desactiva la comprobación (solo desarrollo local). |
+| `API_PUBLIC_DOCS=1` | Deja `/docs`, `/redoc` y `/openapi.json` sin clave. |
+
+Si `API_AUTH_REQUIRED=1` y `API_KEYS` está vacío, los servicios responden `503`
+en lugar de quedar abiertos (fail-closed).
+
+`ADMIN_KEY` sigue protegiendo además los endpoints de administración
+(`/admin/*`, `/fit-from-db`, `/assign-from-db`) con `X-Admin-Key`: para esas
+rutas se requieren **ambas** claves.
+
+El middleware vive en `api_key_auth.py` dentro de cada servicio (idéntico en los
+seis) y no toca el cuerpo de la petición, así que es compatible con streaming.

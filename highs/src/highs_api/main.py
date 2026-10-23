@@ -6,6 +6,7 @@ from fastapi import FastAPI
 
 from . import __version__
 from .api import capabilities, lp_routes, mip_routes, qp_routes
+from .api.api_key_auth import APIKeyMiddleware
 from .api.errors import register_exception_handlers
 from .api.middleware import MaxBodySizeMiddleware, RequestLoggerMiddleware
 from .config import settings
@@ -23,6 +24,8 @@ def create_app() -> FastAPI:
             "autocontenido: la API no conserva modelos entre llamadas."
         ),
     )
+    # Autenticación por clave antes de procesar el cuerpo de la petición.
+    app.add_middleware(APIKeyMiddleware)
     # El middleware de logging debe ser el más externo para abarcar todo el ciclo.
     app.add_middleware(MaxBodySizeMiddleware)
     app.add_middleware(RequestLoggerMiddleware)

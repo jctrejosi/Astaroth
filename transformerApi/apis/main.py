@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from .api_key_auth import APIKeyMiddleware
 from .upload_model import router as upload_router
 from .download_model import router as download_router
 from .train import router as train_router
@@ -11,6 +12,8 @@ from .delete_model import router as delete_model
 from .list_models import router as list_models
 
 app = FastAPI()
+
+app.add_middleware(APIKeyMiddleware)
 
 app.add_middleware(
     CORSMiddleware,

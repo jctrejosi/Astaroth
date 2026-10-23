@@ -10,10 +10,22 @@
 #   causal       → http://localhost:8014/docs   (PyTorch ↓ RAM)
 #   highs        → http://localhost:8015/docs   (optimización LP/MIP/QP)
 #
+# Puertos: 8010-8015 quedan reservados para Astaroth. No chocan con los demás
+# proyectos del servidor (ecommerce 30180/30181, CRM 30280/30281, Paimon
+# 8100-8102/8188, bot de WhatsApp 8300/8301). Si necesitas moverlos, define
+# ASTAROTH_*_PORT en un `.env` junto a este archivo.
+#
 # Variables (define un `.env` junto a este archivo, o expórtalas):
 #   ADMIN_KEY     clave de los /admin/* y /segment-clients (defecto: change-me)
 #   DATABASE_URL  réplica de analytics (Postgres) que lee clustering-api; sin
 #                 ella, los endpoints que consultan clientes (RFM) dan 503.
+#   ASTAROTH_BIND_IP            IP del host donde publicar (defecto: 0.0.0.0)
+#   ASTAROTH_CLUSTERING_PORT    host → 8010 (defecto: 8010)
+#   ASTAROTH_XGBOOST_PORT       host → 8011 (defecto: 8011)
+#   ASTAROTH_UPLIFT_PORT        host → 8012 (defecto: 8012)
+#   ASTAROTH_TRANSFORMER_PORT   host → 8013 (defecto: 8013)
+#   ASTAROTH_CAUSAL_PORT        host → 8014 (defecto: 8014)
+#   ASTAROTH_HIGHS_PORT         host → 8015 (defecto: 8015)
 #
 # Solo el trío ligero (+ highs): pon ASTROTH_FULL: "0".
 # Los dos PyTorch consumen ~2 GB de RAM cada uno.
@@ -36,18 +48,28 @@ services:
       ADMIN_KEY: "${ADMIN_KEY:-change-me}"
       DATABASE_URL: "${DATABASE_URL:-}"
     ports:
-      - "8010:8010"   # clustering-api
-      - "8011:8011"   # XGBoost-api
-      - "8012:8012"   # uplift-api
-      - "8013:8013"   # transformerApi     (PyTorch)
-      - "8014:8014"   # causalTransformer-api (PyTorch)
-      - "8015:8015"   # highs (LP/MIP/QP, HiGHS)
+      - "${ASTAROTH_BIND_IP:-0.0.0.0}:${ASTAROTH_CLUSTERING_PORT:-8010}:8010"   # clustering-api
+      - "${ASTAROTH_BIND_IP:-0.0.0.0}:${ASTAROTH_XGBOOST_PORT:-8011}:8011"      # XGBoost-api
+      - "${ASTAROTH_BIND_IP:-0.0.0.0}:${ASTAROTH_UPLIFT_PORT:-8012}:8012"       # uplift-api
+      - "${ASTAROTH_BIND_IP:-0.0.0.0}:${ASTAROTH_TRANSFORMER_PORT:-8013}:8013"  # transformerApi (PyTorch)
+      - "${ASTAROTH_BIND_IP:-0.0.0.0}:${ASTAROTH_CAUSAL_PORT:-8014}:8014"       # causalTransformer-api (PyTorch)
+      - "${ASTAROTH_BIND_IP:-0.0.0.0}:${ASTAROTH_HIGHS_PORT:-8015}:8015"        # highs (LP/MIP/QP, HiGHS)
+    # Permite usar host.docker.internal en DATABASE_URL para llegar a un
+    # Postgres publicado en el host (p. ej. la réplica analytics del CRM).
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8010/health || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 5
       start_period: 120s
+    # Evita que los logs llenen el disco.
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     # Modelos entrenados (saved_models). Están gitignored y no viajan en la
     # imagen; descomenta para usar los de tu máquina (p. ej. prop_activo /
     # prop_segmento de XGBoost-api). Solo lectura si no vas a re-entrenar.

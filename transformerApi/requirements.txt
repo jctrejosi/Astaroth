@@ -12,7 +12,7 @@ einops==0.8.2
 fastapi==0.129.0
 filelock==3.24.3
 fonttools==4.61.1
-fsspec==2026.2.0
+fsspec==2026.6.0
 h11==0.16.0
 httptools==0.7.1
 hyper-connections==0.4.9

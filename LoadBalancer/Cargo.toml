@@ -1,0 +1,15 @@
+[package]
+name = "load-balancer"
+version = "0.1.0"
+edition = "2021"
+description = "Balanceador dinámico de carga de trabajo (servicio stateless en Rust)"
+
+[dependencies]
+axum = "0.7"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "net"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }

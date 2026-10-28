@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://astaroth.local/loadbalancer/v1/plan.request.schema.json",
+  "title": "PlanRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["horizon_minutes", "employees", "tasks"],
+  "properties": {
+    "horizon_minutes": { "type": "integer", "minimum": 0 },
+    "employees": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/employee" }
+    },
+    "tasks": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/task" }
+    },
+    "options": { "$ref": "#/$defs/options" },
+    "duration_observations": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/durationObservation" },
+      "default": []
+    },
+    "arrival_history": {
+      "type": "array",
+      "items": { "type": "integer", "minimum": 0 },
+      "default": []
+    }
+  },
+  "$defs": {
+    "employee": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id"],
+      "properties": {
+        "id": { "type": "string" },
+        "available_minutes": { "type": "integer", "minimum": 0, "default": 0 },
+        "skills": { "type": "array", "items": { "type": "string" }, "default": [] },
+        "shifts": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/shift" },
+          "default": []
+        }
+      }
+    },
+    "shift": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["start_minutes", "end_minutes"],
+      "properties": {
+        "start_minutes": { "type": "integer", "minimum": 0 },
+        "end_minutes": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "task": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "status", "type"],
+      "properties": {
+        "id": { "type": "string" },
+        "status": { "enum": ["pending", "assigned", "running"] },
+        "type": { "type": "string" },
+        "current_employee_id": { "type": ["string", "null"] },
+        "employee_id": { "type": ["string", "null"] },
+        "remaining_minutes": { "type": ["integer", "null"], "minimum": 0 },
+        "estimated_minutes_by_employee": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 0 }
+        },
+        "priority": { "type": "integer", "minimum": 0, "default": 0 },
+        "deadline_minutes": { "type": ["integer", "null"], "minimum": 0 },
+        "dependencies": { "type": "array", "items": { "type": "string" }, "default": [] }
+      }
+    },
+    "options": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "solver": { "enum": ["heuristic", "highs"] },
+        "time_limit_seconds": { "type": ["number", "null"], "minimum": 0 },
+        "enforce_capacity": { "type": "boolean", "default": true },
+        "improvement_threshold_minutes": { "type": "integer", "minimum": 0, "default": 1 },
+        "max_changes_per_cycle": { "type": "integer", "minimum": 0, "default": 100 },
+        "ema_alpha": { "type": "number", "minimum": 0, "maximum": 1, "default": 0.3 },
+        "forecast_periods": { "type": "integer", "minimum": 0, "default": 0 }
+      }
+    },
+    "durationObservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["employee_id", "type", "actual_minutes"],
+      "properties": {
+        "employee_id": { "type": "string" },
+        "type": { "type": "string" },
+        "actual_minutes": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

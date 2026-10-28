@@ -1,0 +1,2 @@
+# Artefactos de compilación (no viajan en la imagen)
+target/

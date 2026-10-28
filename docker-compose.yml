@@ -9,8 +9,9 @@
 #   transformer  → http://localhost:8013/docs   (PyTorch ↓ RAM)
 #   causal       → http://localhost:8014/docs   (PyTorch ↓ RAM)
 #   highs        → http://localhost:8015/docs   (optimización LP/MIP/QP)
+#   load-balancer→ http://localhost:8016        (balanceador de carga Rust)
 #
-# Puertos: 8010-8015 quedan reservados para Astaroth. No chocan con los demás
+# Puertos: 8010-8016 quedan reservados para Astaroth. No chocan con los demás
 # proyectos del servidor (ecommerce 30180/30181, CRM 30280/30281, Paimon
 # 8100-8102/8188, bot de WhatsApp 8300/8301). Si necesitas moverlos, define
 # ASTAROTH_*_PORT en un `.env` junto a este archivo.
@@ -81,3 +82,30 @@ services:
     #   - ./clustering-api/saved_models:/app/clustering-api/saved_models:ro
     #   - ./XGBoost-api/saved_models:/app/xgboost-api/saved_models:ro
     #   - ./uplift-api/saved_models:/app/uplift-api/saved_models:ro
+
+  # Balanceador de carga de trabajo: servicio Rust stateless que publica en 8016.
+  # Para optimización MILP llama al servicio `highs` del contenedor `astaroth`.
+  load-balancer:
+    build:
+      context: ./LoadBalancer
+      dockerfile: Dockerfile
+    image: load-balancer:local
+    container_name: load-balancer
+    restart: unless-stopped
+    environment:
+      LOAD_BALANCER_PORT: "8016"
+      HIGHS_URL: "${HIGHS_URL:-http://astaroth:8015}"
+      HIGHS_API_KEY: "${HIGHS_API_KEY:-}"
+    ports:
+      - "${ASTAROTH_BIND_IP:-0.0.0.0}:${ASTAROTH_LOAD_BALANCER_PORT:-8016}:8016"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8016/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

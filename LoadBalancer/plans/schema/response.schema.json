@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://astaroth.local/loadbalancer/v1/plan.response.schema.json",
+  "title": "PlanResponse",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "status",
+    "makespan_minutes",
+    "assignments",
+    "running_tasks_unchanged",
+    "changes",
+    "capacity",
+    "unassigned_tasks",
+    "solver",
+    "warnings"
+  ],
+  "properties": {
+    "status": { "enum": ["FEASIBLE", "CAPACITY_SHORTAGE", "UNASSIGNABLE", "UNKNOWN"] },
+    "makespan_minutes": { "type": ["integer", "null"], "minimum": 0 },
+    "assignments": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/assignment" }
+    },
+    "running_tasks_unchanged": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "changes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/change" }
+    },
+    "capacity": { "$ref": "#/$defs/capacityReport" },
+    "unassigned_tasks": { "type": "array", "items": { "type": "string" } },
+    "solver": { "$ref": "#/$defs/solverInfo" },
+    "warnings": { "type": "array", "items": { "type": "string" } },
+    "updated_estimates": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/updatedEstimate" }
+    },
+    "demand_forecast": {
+      "type": "array",
+      "items": { "type": "integer", "minimum": 0 }
+    }
+  },
+  "$defs": {
+    "assignment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["task_id", "employee_id"],
+      "properties": {
+        "task_id": { "type": "string" },
+        "employee_id": { "type": "string" }
+      }
+    },
+    "change": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["task_id", "to_employee_id", "reason"],
+      "properties": {
+        "task_id": { "type": "string" },
+        "from_employee_id": { "type": ["string", "null"] },
+        "to_employee_id": { "type": "string" },
+        "reason": { "type": "string" }
+      }
+    },
+    "capacityReport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required_minutes", "available_minutes", "shortage_minutes"],
+      "properties": {
+        "required_minutes": { "type": "integer", "minimum": 0 },
+        "available_minutes": { "type": "integer", "minimum": 0 },
+        "shortage_minutes": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "solverInfo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["method", "optimality_proven"],
+      "properties": {
+        "method": { "type": "string" },
+        "optimality_proven": { "type": "boolean" }
+      }
+    },
+    "updatedEstimate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["employee_id", "task_type", "duration_minutes"],
+      "properties": {
+        "employee_id": { "type": "string" },
+        "task_type": { "type": "string" },
+        "duration_minutes": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

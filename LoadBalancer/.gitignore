@@ -1,0 +1,11 @@
+# build
+/target
+
+# secretos (variables de entorno locales)
+.env
+.env.*
+
+# editor
+.idea/
+.vscode/
+*.iml

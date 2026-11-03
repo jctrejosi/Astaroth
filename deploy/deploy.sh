@@ -12,7 +12,7 @@
 # ============================================================
 set -Eeuo pipefail
 
-ROOT="${DEPLOY_PATH:-/mnt/c/Users/Desarrolo4/Documents/astaroth}"
+ROOT="${DEPLOY_PATH:-/home/deploy/Astaroth}"
 TARGET="${1:-origin/dev}"
 
 log()  { printf '[astaroth-deploy] %s\n' "$*"; }

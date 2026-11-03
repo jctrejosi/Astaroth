@@ -108,6 +108,29 @@ Los `uvicorn` escuchan en todas las interfaces, así que **todos** los puertos
 (no solo los publicados) son alcanzables; para publicar solo algunos, edita la
 sección `ports:` del compose.
 
+## Producción en el servidor (edge compartido)
+
+En el servidor `jcti` Astaroth se publica en **https://astaroth.jcti.xyz** detrás
+del edge compartido (`edge_caddy`, el único que publica 80/443):
+
+```bash
+cd /home/deploy/Astaroth
+docker compose -f docker-compose.yml -f docker-compose.edge.yml up -d
+```
+
+- El compose base publica los puertos en `127.0.0.1` (`ASTAROTH_BIND_IP`), así
+  que nada queda expuesto en el host.
+- `docker-compose.edge.yml` une los contenedores a las redes externas
+  `shared_edge` (para que el edge los alcance por nombre) y `crm_internal`
+  (réplica `analytics` del CRM, que `clustering-api` lee vía `DATABASE_URL`).
+- El edge replica el ruteo por prefijo: `/clustering`, `/xgboost`, `/uplift`,
+  `/transformer`, `/causal`, `/highs` y `/lb` (balanceador).
+
+```bash
+# /health es público; el resto exige clave (X-API-Key o Authorization: Bearer)
+curl -H 'X-API-Key: <clave>' https://astaroth.jcti.xyz/clustering/health
+```
+
 ## Seguridad de dependencias
 
 Auditoría con `pip-audit` (OSV/PyPA) y actualización semanal con Dependabot

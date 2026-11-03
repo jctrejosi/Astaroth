@@ -15,6 +15,9 @@ services:
     networks:
       - default
       - shared_edge
+      # Réplica `analytics` del CRM (Postgres): se lee por la red interna del
+      # CRM, sin publicar el puerto en el host ni en internet.
+      - crm_internal
 
   load-balancer:
     networks:
@@ -25,3 +28,7 @@ networks:
   shared_edge:
     external: true
     name: shared_edge
+
+  crm_internal:
+    external: true
+    name: crm_internal
